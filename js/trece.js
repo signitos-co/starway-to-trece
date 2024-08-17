@@ -10,7 +10,7 @@ function Game() {
     this.steps = []
     this.camera = { x: 500, y: 800, width: 1000, height: 1600 }
     this.uicamera = { x: 500, y: 800, width: 1000, height: 1600 }
-    this.stepSize = { width: 100, height: 48 }
+    this.stepSize = { width: 100, height: 32 }
     this.playerSize = { width: 32, height: 64 }
     this.dx = this.stepSize.width
     this.dy = 13
