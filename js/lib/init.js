@@ -1,0 +1,38 @@
+document.addEventListener('DOMContentLoaded', async () => {
+    const game = new Game();
+    await game.init();
+
+    document.addEventListener('pointerdown', event => {
+        if (event.button === 0 && event.isPrimary) {
+            game.onPointerDown(event);
+        }
+    });
+
+    document.addEventListener('pointerup', event => {
+        if (event.button === 0 && event.isPrimary) {
+            game.onPointerUp(event);
+        }
+    });
+
+    document.addEventListener('keydown', event => {
+        game.onKeyDown(event.key.toLowerCase());
+    });
+
+    document.addEventListener('keyup', event => {
+        game.onKeyUp(event.key.toLowerCase());
+    });
+
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    window.requestAnimationFrame(doFrame);
+    window.addEventListener('resize', () => {
+        game.resize();
+    });
+
+    function doFrame(timestamp){
+        const dt = timestamp - game.previous;
+        game.previous = timestamp;
+        game.frame(dt);
+        window.requestAnimationFrame(doFrame);
+    }
+});
