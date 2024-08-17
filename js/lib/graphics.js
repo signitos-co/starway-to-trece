@@ -1,4 +1,4 @@
-function Graphics(){
+function Graphics() {
     this.scaleFactor = 1;
 }
 
@@ -26,34 +26,34 @@ Graphics.prototype.drawCanvas = function (x, y, canvas, camera, ctx) {
     ctx.drawImage(canvas, tx, ty);
 }
 
-Graphics.prototype.drawText = function (o, camera, ctx) {
+Graphics.prototype.drawText = function (x, y, text, color, size, font, center, camera, ctx) {
     ctx.save()
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
 
-    let x = 0
-    let y = 0
+    let _x = 0
+    let _y = 0
 
-    x = o.x + (camera.width * 0.5) - camera.x
-    y = o.y + (camera.height * 0.5) - camera.y
+    _x = x + (camera.width * 0.5) - camera.x
+    _y = y + (camera.height * 0.5) - camera.y
 
-    ctx.translate(x, y);
+    ctx.translate(_x, _y);
 
-    ctx.fillStyle = o.color;
-    ctx.font = o.size + 'px ' + o.font;
-    const width = ctx.measureText(o.content).width;
+    ctx.fillStyle = color;
+    ctx.font = size + 'px ' + font;
+    const width = ctx.measureText(text).width;
 
     if (width >= ctx.canvas.width) {
-        const parts = o.content.split(' ');
+        const parts = text.split(' ');
         let y = 0;
         for (let i = 0; i < parts.length; i++) {
             let part = parts[i];
-            ctx.fillText(part, o.center ? 0 : ctx.measureText(o.part).width / 2, y);
+            ctx.fillText(part, center ? 0 : ctx.measureText(o.part).width / 2, y);
             const measure = ctx.measureText(part);
             y += measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent + 2;
         }
     } else {
-        ctx.fillText(o.content, o.center ? 0 : ctx.measureText(o.content).width / 2, 0);
+        ctx.fillText(text, center ? 0 : ctx.measureText(text).width / 2, 0);
     }
 
     ctx.restore()
@@ -114,7 +114,7 @@ Graphics.prototype.hitTest = function (event, ctx, o, camera) {
     } else if (o.text && this.insideText(o, point, ctx)) {
         return true;
     }
-   
+
     return false;
 }
 

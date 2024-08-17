@@ -11,9 +11,9 @@ function Game() {
     this.steps = []
     this.camera = { x: 500, y: 800, width: 1000, height: 1600 }
     this.uicamera = { x: 500, y: 800, width: 1000, height: 1600 }
-    this.stepSize = {width: 100, height: 48}
+    this.stepSize = { width: 100, height: 48 }
     this.dx = this.stepSize.width
-    this.dy = this.stepSize.height * 0.25
+    this.dy = this.stepSize.height * (0.13 *2)
 }
 
 Game.prototype.init = async function () {
@@ -28,10 +28,12 @@ Game.prototype.init = async function () {
 
     let x = this.stepSize.width * 0.5, y = 1600 - (this.stepSize.height * 0.5)
     let sign = 1
-    for (let i = 1; i < (13 - 1) * 10; i++) {
+    for (let i = 1; i <= 109; i++) {
         this.steps.push({ x: x, y: y })
 
-        if (i % 10 == 0) {
+        if (i == 10 || i == 19 || i == 28 || i == 37 || i == 46
+             || i == 55 || i == 64 || i == 73 || i == 82
+             || i == 91  || i == 100|| i == 109) {
             sign = sign * (-1)
         }
 
@@ -66,6 +68,12 @@ Game.prototype.draw = function (ctx) {
 
     for (let step of this.steps) {
         graphics.drawCanvas(step.x, step.y, this.stepCanvas, this.camera, ctx)
+    }
+
+    let i = 1;
+    for (let step of this.steps) {
+        graphics.drawText(step.x, step.y, i, 'white', 24, 'Verdana', true, this.camera, ctx)
+        i++;
     }
 
     for (let ui of this.ui) {
