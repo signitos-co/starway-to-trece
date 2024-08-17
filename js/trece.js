@@ -19,8 +19,8 @@ function Game() {
         y: 0,
         canvas: null
     }
-    this.playerStep = 0
-    this.spaceLocked = false
+    this.playerStep = 1
+    this.elapsedTime=0
 }
 
 Game.prototype.init = async function () {
@@ -49,30 +49,26 @@ Game.prototype.init = async function () {
         y -= this.dy
     }
 
-    this.setPlayerPosition(0)
+    this.setPlayerPosition(1)
 }
 
 Game.prototype.update = function (dt) {
     this.setPlayerPosition(this.playerStep)
+    this.elapsedTime += dt
 }
 
 Game.prototype.onKeyDown = function (key) {
-    if (key == ' ') {
-        if (!this.spaceLocked) {
-            this.playerStep++;
-            this.spaceLocked = true;
-        }
-    }
+
 }
 
 Game.prototype.onKeyUp = function (key) {
-    if (key == ' ') {
-        this.spaceLocked = false;
-    }
+
 }
 
 Game.prototype.onPointerDown = function (event) {
-    this.playerStep++;
+    if (this.playerStep - 1 < this.steps.length - 1) {
+        this.playerStep++;
+    }
 }
 
 Game.prototype.onPointerUp = function (event) {
@@ -98,6 +94,9 @@ Game.prototype.draw = function (ctx) {
     for (let ui of this.ui) {
         graphics.drawCanvas(ui.x, ui.y, ui.canvas, this.uicamera, ctx)
     }
+
+    graphics.drawText(4, 16, this.formatStep(), 'white', 24, 'Verdana', false, this.camera, ctx)
+    graphics.drawText(860, 16, this.formatTime(), 'white', 24, 'Verdana', false, this.camera, ctx)
 }
 
 Game.prototype.resize = function () {
@@ -117,9 +116,24 @@ Game.prototype.frame = function (dt) {
     this.draw(this.ctx)
 }
 
-Game.prototype.setPlayerPosition = function (stepIndex) {
-    if (stepIndex < this.steps.length) {
-        this.player.x = this.steps[stepIndex].x
-        this.player.y = this.steps[stepIndex].y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
-    }
+Game.prototype.setPlayerPosition = function (playerStep) {
+    this.player.x = this.steps[playerStep - 1].x
+    this.player.y = this.steps[playerStep - 1].y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
+}
+
+Game.prototype.formatStep = function () {
+   return `Step ${String(this.playerStep).padStart(3, '0')} of 113`
+}
+
+//GPT
+Game.prototype.formatTime = function() {
+    const hours = Math.floor(this.elapsedTime / (1000 * 60 * 60));
+    const minutes = Math.floor((this.elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((this.elapsedTime % (1000 * 60)) / 1000);
+
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(seconds).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
