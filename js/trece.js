@@ -11,8 +11,16 @@ function Game() {
     this.camera = { x: 500, y: 800, width: 1000, height: 1600 }
     this.uicamera = { x: 500, y: 800, width: 1000, height: 1600 }
     this.stepSize = { width: 100, height: 48 }
+    this.playerSize = { width: 32, height: 64 }
     this.dx = this.stepSize.width
-    this.dy = this.stepSize.height * (0.13 *2)
+    this.dy = 13
+    this.player = {
+        x: 0,
+        y: 0,
+        canvas: null
+    }
+    this.playerStep = 0
+    this.spaceLocked = false
 }
 
 Game.prototype.init = async function () {
@@ -22,39 +30,49 @@ Game.prototype.init = async function () {
     this.canvas.width = this.camera.width
     this.canvas.height = this.camera.height
 
-    const stepBitmap = await graphics.loadBitmap('./img/step.png')
-    this.stepCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, stepBitmap)
+    this.stepCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step.png'))
+    this.player.canvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/player.png'))
 
-    let x = this.stepSize.width * 0.5, y = 1600 - (this.stepSize.height * 0.5)
+    let x = this.stepSize.width * 0.5
+    let y = 1600 - (this.stepSize.height * 0.5)
     let sign = 1
-    for (let i = 1; i <= 109; i++) {
+    for (let i = 1; i <= 113; i++) {
         this.steps.push({ x: x, y: y })
 
         if (i == 10 || i == 19 || i == 28 || i == 37 || i == 46
-             || i == 55 || i == 64 || i == 73 || i == 82
-             || i == 91  || i == 100|| i == 109) {
+            || i == 55 || i == 64 || i == 73 || i == 82
+            || i == 91 || i == 100 || i == 109) {
             sign = sign * (-1)
         }
 
         x += this.dx * sign
         y -= this.dy
     }
+
+    this.setPlayerPosition(0)
 }
 
 Game.prototype.update = function (dt) {
-
+    this.setPlayerPosition(this.playerStep)
 }
 
 Game.prototype.onKeyDown = function (key) {
-
+    if (key == ' ') {
+        if (!this.spaceLocked) {
+            this.playerStep++;
+            this.spaceLocked = true;
+        }
+    }
 }
 
 Game.prototype.onKeyUp = function (key) {
-
+    if (key == ' ') {
+        this.spaceLocked = false;
+    }
 }
 
 Game.prototype.onPointerDown = function (event) {
-
+    this.playerStep++;
 }
 
 Game.prototype.onPointerUp = function (event) {
@@ -74,6 +92,8 @@ Game.prototype.draw = function (ctx) {
         graphics.drawText(step.x, step.y, i, 'white', 24, 'Verdana', true, this.camera, ctx)
         i++;
     }
+
+    graphics.drawCanvas(this.player.x, this.player.y, this.player.canvas, this.camera, ctx)
 
     for (let ui of this.ui) {
         graphics.drawCanvas(ui.x, ui.y, ui.canvas, this.uicamera, ctx)
@@ -95,4 +115,11 @@ Game.prototype.frame = function (dt) {
     });
 
     this.draw(this.ctx)
+}
+
+Game.prototype.setPlayerPosition = function (stepIndex) {
+    if (stepIndex < this.steps.length) {
+        this.player.x = this.steps[stepIndex].x
+        this.player.y = this.steps[stepIndex].y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
+    }
 }

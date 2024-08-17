@@ -1,13 +1,17 @@
 function Sound(){
-   this.audioCtx = new AudioContext()
+   this.audioCtx = null;
 }
 
 Sound.prototype.loadAudio = async function (path) {
+        if(this.audioCtx == null){
+            this.audioCtx = new AudioContext()
+        }
+
         console.log('Will load ' + path);
 
         const response = await fetch(path);
         const audioData = await response.arrayBuffer();
-        return audioBuffer = await this.audioCtx.decodeAudioData(audioData)
+        return await this.audioCtx.decodeAudioData(audioData)
 }
 
 Sound.prototype.playAudio = function (buffer) {
