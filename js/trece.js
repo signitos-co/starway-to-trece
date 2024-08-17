@@ -1,6 +1,5 @@
 const graphics = new Graphics();
 const mathUtils = new MathUtils();
-const random = new Random();
 const sound = new Sound();
 
 function Game() {
