@@ -4,7 +4,6 @@ const sound = new Sound();
 
 function Game() {
     this.previous = performance.now();
-    this.elapsed = 0
     this.stepCanvas = null
     this.ui = []
     this.steps = []
@@ -19,8 +18,9 @@ function Game() {
         y: 0,
         canvas: null
     }
-    this.playerStep = 1
-    this.elapsedTime=0
+    this.playerStep = 103
+    this.elapsedTime = 0
+    this.timerRunning = true
 }
 
 Game.prototype.init = async function () {
@@ -54,7 +54,14 @@ Game.prototype.init = async function () {
 
 Game.prototype.update = function (dt) {
     this.setPlayerPosition(this.playerStep)
-    this.elapsedTime += dt
+
+    if(this.playerStep == this.steps.length){
+        this.timerRunning = false
+    }
+
+    if(this.timerRunning){
+        this.elapsedTime += dt
+    }
 }
 
 Game.prototype.onKeyDown = function (key) {
@@ -96,7 +103,7 @@ Game.prototype.draw = function (ctx) {
     }
 
     graphics.drawText(4, 16, this.formatStep(), 'white', 24, 'Verdana', false, this.camera, ctx)
-    graphics.drawText(860, 16, this.formatTime(), 'white', 24, 'Verdana', false, this.camera, ctx)
+    graphics.drawText(852, 16, this.formatTime(), 'white', 24, 'Verdana', false, this.camera, ctx)
 }
 
 Game.prototype.resize = function () {
@@ -126,14 +133,15 @@ Game.prototype.formatStep = function () {
 }
 
 //GPT
-Game.prototype.formatTime = function() {
-    const hours = Math.floor(this.elapsedTime / (1000 * 60 * 60));
-    const minutes = Math.floor((this.elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((this.elapsedTime % (1000 * 60)) / 1000);
+Game.prototype.formatTime = function formatTime() {
+    const milliseconds = this.elapsedTime;
+    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+    const remainingMilliseconds =  Math.floor(milliseconds % 1000);
 
-    const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
     const formattedSeconds = String(seconds).padStart(2, '0');
+    const formattedMilliseconds = String(remainingMilliseconds).padStart(3, '0');
 
-    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    return `${formattedMinutes}:${formattedSeconds}:${formattedMilliseconds}`;
 }
