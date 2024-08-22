@@ -1,6 +1,7 @@
 function MathUtils() {
 }
+const mathUtils = new MathUtils()
 
-MathUtils.prototype.degreesToRadians = function (degrees) {
+mathUtils.degreesToRadians = function (degrees) {
     return - (degrees * Math.PI / 180)
 }

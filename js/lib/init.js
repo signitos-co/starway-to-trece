@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const game = new Game()
     await game.init()
 
     document.addEventListener('pointerdown', event => {

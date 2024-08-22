@@ -2,7 +2,9 @@ function Graphics() {
     this.scaleFactor = 1
 }
 
-Graphics.prototype.resizeContainer = function (worldSize, viewSize, canvas) {
+const graphics = new Graphics()
+
+graphics.resizeContainer = function (worldSize, viewSize, canvas) {
     const factorWidth = viewSize.width / worldSize.width
     const factorHeight = viewSize.height / worldSize.height
     this.scaleFactor = Math.min(factorHeight, factorWidth)
@@ -19,14 +21,14 @@ Graphics.prototype.resizeContainer = function (worldSize, viewSize, canvas) {
     console.log(`Scale ${this.scaleFactor}`)
 }
 
-Graphics.prototype.drawSprite = function (sprite, camera, ctx) {
+graphics.drawSprite = function (sprite, camera, ctx) {
     let tx = sprite.x - (sprite.canvas.width / 2) + (camera.width * 0.5) - camera.x
     let ty = sprite.y - (sprite.canvas.height / 2) + (camera.height * 0.5) - camera.y
 
     ctx.drawImage(sprite.canvas, tx, ty)
 }
 
-Graphics.prototype.drawText = function (text, camera, ctx) {
+graphics.drawText = function (text, camera, ctx) {
     ctx.save()
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'center'
@@ -59,7 +61,7 @@ Graphics.prototype.drawText = function (text, camera, ctx) {
     ctx.restore()
 }
 
-Graphics.prototype.insideBitmap = function (o, point, camera) {
+graphics.insideBitmap = function (o, point, camera) {
     let x = o.x - (o.canvas.width / 2) + (camera.width * 0.5) - camera.x
     let y = o.y - (o.canvas.height / 2) + (camera.height * 0.5) - camera.y
 
@@ -77,7 +79,7 @@ Graphics.prototype.insideBitmap = function (o, point, camera) {
     return hit
 }
 
-Graphics.prototype.insideText = function (o, point, ctx) {
+graphics.insideText = function (o, point, ctx) {
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'center'
     ctx.font = o.textSize + 'px ' + o.textFont
@@ -102,7 +104,7 @@ Graphics.prototype.insideText = function (o, point, ctx) {
     return point.x >= startX && point.x <= endX && point.y >= startY && point.y <= endY
 }
 
-Graphics.prototype.hitTest = function (event, ctx, o, camera) {
+graphics.hitTest = function (event, ctx, o, camera) {
     const rect = event.target.getBoundingClientRect()
     let point = {
         x: ((event.clientX - rect.left) / this.scaleFactor),
@@ -118,7 +120,7 @@ Graphics.prototype.hitTest = function (event, ctx, o, camera) {
     return false
 }
 
-Graphics.prototype.loadBitmap = async function (path) {
+graphics.loadBitmap = async function (path) {
     console.log('Will load ' + path)
 
     const response = await fetch(path)
@@ -126,7 +128,7 @@ Graphics.prototype.loadBitmap = async function (path) {
     return window.createImageBitmap(blob)
 }
 
-Graphics.prototype.maxWidth = function (ctx, parts) {
+graphics.maxWidth = function (ctx, parts) {
     let maxWidth = ctx.measureText(parts[0]).width
 
     for (let i = 0; i < parts.length; i++) {
@@ -141,7 +143,7 @@ Graphics.prototype.maxWidth = function (ctx, parts) {
     return maxWidth
 }
 
-Graphics.prototype.transform = function (width, height, degrees, bitmap) {
+graphics.transform = function (width, height, degrees, bitmap) {
     const radians = mathUtils.degreesToRadians(degrees)
     const cosAngle = Math.abs(Math.cos(radians))
     const sinAngle = Math.abs(Math.sin(radians))
@@ -162,7 +164,7 @@ Graphics.prototype.transform = function (width, height, degrees, bitmap) {
     return canvas
 }
 
-Graphics.prototype.debug = function (ctx, o) {
+graphics.debug = function (ctx, o) {
     ctx.lineWidth = 1
     ctx.strokeStyle = "yellow"
 
@@ -177,11 +179,11 @@ Graphics.prototype.debug = function (ctx, o) {
     }
 }
 
-Graphics.prototype.createBoundingBox = function (startX, endX, startY, endY) {
+graphics.createBoundingBox = function (startX, endX, startY, endY) {
     return { startX, endX, startY, endY }
 }
 
-Graphics.prototype.strokeLine = function (x1, y1, x2, y2, color, ctx) {
+graphics.strokeLine = function (x1, y1, x2, y2, color, ctx) {
     ctx.beginPath()
     ctx.moveTo(x1, y1)
     ctx.lineTo(x2, y2)
@@ -189,12 +191,12 @@ Graphics.prototype.strokeLine = function (x1, y1, x2, y2, color, ctx) {
     ctx.stroke()
 }
 
-Graphics.prototype.scaleWidth = function (width, rotation, bitmap) {
+graphics.scaleWidth = function (width, rotation, bitmap) {
     const scaleFactor = width / bitmap.width
     return this.transform(bitmap.width * scaleFactor, bitmap.height * scaleFactor, rotation, bitmap)
 }
 
-Graphics.prototype.scaleHeight = function (height, rotation, bitmap) {
+graphics.scaleHeight = function (height, rotation, bitmap) {
     const scaleFactor = height / bitmap.height
     return this.transform(bitmap.width * scaleFactor, bitmap.height * scaleFactor, rotation, bitmap)
 }
