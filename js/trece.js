@@ -2,8 +2,7 @@ function Game() {
     this.steps = []
     this.stepsCount = 113
     this.dy = 13
-    this.camera = { x: 500, y: 800, width: 1000, height: 1600 }
-    this.uicamera = { x: 500, y: 800, width: 1000, height: 1600 }
+    this.size = { width: 1000, height: 1600 }
     this.stepSize = { width: 100, height: 32 }
     this.playerSize = { width: 32, height: 64 }
     this.dx = this.stepSize.width
@@ -11,11 +10,16 @@ function Game() {
     this.playerStep = 100
     this.elapsedTime = 0
     this.timerRunning = true
-    this.stepsInfo = new Label(4, 18, '', 'white', 13 * 2, 'Verdana', false)
-    this.timeInfo = new Label(852, 18, '', 'white', 13 * 2, 'Verdana', false)
+    this.stepsInfo = new Label(4, 18, '', 'white', 13 * 2, 'Verdana')
+    this.timeInfo = new Label(852, 18, '', 'white', 13 * 2, 'Verdana')
     this.floorLabels = []
+    this.labels = {
+        pause: new Label(800, 1600 - (13 * 3), 'Pause', 'white', 13 * 4, 'Verdana')
+    }
 
     this.directionSteps = [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109]
+
+    this.current = 'InGame'
 }
 
 const game = new Game()
@@ -24,8 +28,8 @@ game.init = async function () {
     this.previous = performance.now()
 
     this.canvas = document.getElementById('canvas')
-    this.canvas.width = this.camera.width
-    this.canvas.height = this.camera.height
+    this.canvas.width = this.size.width
+    this.canvas.height = this.size.height
 
     this.resize();
 
@@ -52,15 +56,17 @@ game.init = async function () {
 }
 
 game.update = function (dt) {
-    this.setPlayerPosition(this.playerStep)
+    if (this.current == 'InGame') {
+        this.setPlayerPosition(this.playerStep)
 
-    if (this.playerStep == this.steps.length) {
-        this.timerRunning = false
-        this.updateRecord()
-    }
+        if (this.playerStep == this.steps.length) {
+            this.timerRunning = false
+            this.updateRecord()
+        }
 
-    if (this.timerRunning) {
-        this.elapsedTime += dt
+        if (this.timerRunning) {
+            this.elapsedTime += dt
+        }
     }
 }
 
@@ -73,8 +79,17 @@ game.onKeyUp = function (key) {
 }
 
 game.onPointerDown = function (event) {
-    if (this.playerStep - 1 < this.steps.length - 1) {
-        this.playerStep++
+    if (this.current == 'InGame') {
+        let pauseHit = graphics.insideLabel(this.labels.pause, event, this.ctx)
+
+        if (pauseHit) {
+            console.log('Pause!')
+            return
+        }
+
+        if (this.playerStep - 1 < this.steps.length - 1) {
+            this.playerStep++
+        }
     }
 }
 
@@ -84,28 +99,28 @@ game.onPointerUp = function (event) {
 
 game.draw = function (ctx) {
     ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, this.camera.width, this.camera.height)
+    ctx.fillRect(0, 0, this.size.width, this.size.height)
 
     for (let step of this.steps) {
-        graphics.drawSprite(step, this.camera, ctx)
+        graphics.drawSprite(step, ctx)
     }
 
     this.stepsInfo.content = this.formatStep()
-    graphics.drawText(this.stepsInfo, this.camera, ctx)
+    graphics.drawText(this.stepsInfo, ctx)
     this.timeInfo.content = this.formatTime()
-    graphics.drawText(this.timeInfo, this.camera, ctx)
+    graphics.drawText(this.timeInfo, ctx)
 
     for (let floor of this.floorLabels) {
-        graphics.drawText(floor, this.camera, ctx)
+        graphics.drawText(floor, ctx)
     }
 
-    graphics.drawSprite(this.player, this.camera, ctx)
+    graphics.drawText(this.labels.pause, ctx)
+
+    graphics.drawSprite(this.player, ctx)
 }
 
 game.resize = function () {
-    let game = this
-    graphics.resizeContainer({ width: game.camera.width, height: game.camera.height },
-        { width: window.innerWidth, height: window.innerHeight }, this.canvas)
+    graphics.resizeContainer(this.size, { width: window.innerWidth, height: window.innerHeight }, this.canvas)
 }
 
 game.frame = function (dt) {

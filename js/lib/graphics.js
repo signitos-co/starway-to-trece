@@ -21,14 +21,15 @@ graphics.resizeContainer = function (worldSize, viewSize, canvas) {
     console.log(`Scale ${this.scaleFactor}`)
 }
 
-graphics.drawSprite = function (sprite, camera, ctx) {
-    let tx = sprite.x - (sprite.canvas.width / 2) + (camera.width * 0.5) - camera.x
-    let ty = sprite.y - (sprite.canvas.height / 2) + (camera.height * 0.5) - camera.y
+graphics.drawSprite = function (sprite, ctx) {
+    let tx = sprite.x - (sprite.canvas.width / 2)
+    let ty = sprite.y - (sprite.canvas.height / 2)
 
     ctx.drawImage(sprite.canvas, tx, ty)
+    this.debug(sprite.x, sprite.y, sprite.canvas.width, sprite.canvas.height, ctx)
 }
 
-graphics.drawText = function (text, camera, ctx) {
+graphics.drawText = function (label, ctx) {
     ctx.save()
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'center'
@@ -36,42 +37,39 @@ graphics.drawText = function (text, camera, ctx) {
     let x = 0
     let y = 0
 
-    x = text.x + (camera.width * 0.5) - camera.x
-    y = text.y + (camera.height * 0.5) - camera.y
+    x = label.x
+    y = label.y
 
     ctx.translate(x, y)
 
-    ctx.fillStyle = text.color
-    ctx.font = text.size + 'px ' + text.font
-    const width = ctx.measureText(text.content).width
+    ctx.fillStyle = label.color
+    ctx.font = label.size + 'px ' + label.font
+    ctx.fillText(label.content, 0, 0)
 
-    if (width >= ctx.canvas.width) {
-        const parts = text.content.split(' ')
-        let y = 0
-        for (let i = 0; i < parts.length; i++) {
-            let part = parts[i]
-            ctx.fillText(part, text.center ? 0 : ctx.measureText(o.part).width / 2, y)
-            const measure = ctx.measureText(part)
-            y += measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent + 2
-        }
-    } else {
-        ctx.fillText(text.content, text.center ? 0 : ctx.measureText(text.content).width / 2, 0)
-    }
+    const metrics = ctx.measureText(label.content)
+    const textWidth = metrics.width
+    const textHeight = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
+
+    this.debug(0, 0, textWidth, textHeight, ctx)
 
     ctx.restore()
 }
 
-graphics.insideBitmap = function (o, point, camera) {
-    let x = o.x - (o.canvas.width / 2) + (camera.width * 0.5) - camera.x
-    let y = o.y - (o.canvas.height / 2) + (camera.height * 0.5) - camera.y
+graphics.insideSprite = function (sprite, event) {
+    const rect = event.target.getBoundingClientRect()
+    let pointX = (event.clientX - rect.left) / this.scaleFactor
+    let pointY = (event.clientY - rect.top) / this.scaleFactor
 
-    const localX = Math.round(point.x - x)
-    const localY = Math.round(point.y - y)
+    let x = sprite.x - (sprite.canvas.width / 2)
+    let y = sprite.y - (sprite.canvas.height / 2)
+
+    const localX = Math.round(pointX - x)
+    const localY = Math.round(pointY - y)
 
     let hit = false
 
     if (localX >= 0 && localY >= 0) {
-        const alpha = o.canvas.getContext('2d').getImageData(localX, localY, 1, 1).data[3]
+        const alpha = sprite.canvas.getContext('2d').getImageData(localX, localY, 1, 1).data[3]
 
         hit = alpha > 0
     }
@@ -79,45 +77,28 @@ graphics.insideBitmap = function (o, point, camera) {
     return hit
 }
 
-graphics.insideText = function (o, point, ctx) {
+graphics.insideLabel = function (label, event, ctx) {
+    const rect = event.target.getBoundingClientRect()
+    const pointX = (event.clientX - rect.left) / this.scaleFactor
+    const pointY = (event.clientY - rect.top) / this.scaleFactor
+
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'center'
-    ctx.font = o.textSize + 'px ' + o.textFont
-    const measure = ctx.measureText(o.text)
-    let halfWidth = 0
-    let halfHeight = 0
+    ctx.font = label.size + 'px ' + label.font
 
-    if (measure.width < ctx.canvas.width) {
-        halfWidth = (measure.width * this.scaleFactor) / 2
-        halfHeight = ((measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent) * this.scaleFactor) / 2
-    } else {
-        const parts = o.text.split(' ')
-        halfWidth = this.maxWidth(ctx, parts) * this.scaleFactor / 2
-        halfHeight = (parts.length * (measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent + 2) * this.scaleFactor) / 2
-    }
+    const metrics = ctx.measureText(label.content)
+    const textWidth = metrics.width
+    const textHeight = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
 
-    let startX = point.x - halfWidth
-    let endX = point.x + halfWidth
-    let startY = point.y - halfHeight
-    let endY = point.y + halfHeight * 2
+    const halfWidth = textWidth / 2
+    const halfHeight = textHeight / 2
 
-    return point.x >= startX && point.x <= endX && point.y >= startY && point.y <= endY
-}
+    const startX = label.x - halfWidth
+    const endX = label.x + halfWidth
+    const startY = label.y - halfHeight
+    const endY = label.y + halfHeight
 
-graphics.hitTest = function (event, ctx, o, camera) {
-    const rect = event.target.getBoundingClientRect()
-    let point = {
-        x: ((event.clientX - rect.left) / this.scaleFactor),
-        y: ((event.clientY - rect.top) / this.scaleFactor)
-    }
-
-    if (o instanceof Sprite && this.insideBitmap(o, point, camera)) {
-        return true
-    } else if (o instanceof Label && this.insideText(o, point, ctx)) {
-        return true
-    }
-
-    return false
+    return pointX >= startX && pointX <= endX && pointY >= startY && pointY <= endY
 }
 
 graphics.loadBitmap = async function (path) {
@@ -126,21 +107,6 @@ graphics.loadBitmap = async function (path) {
     const response = await fetch(path)
     const blob = await response.blob()
     return window.createImageBitmap(blob)
-}
-
-graphics.maxWidth = function (ctx, parts) {
-    let maxWidth = ctx.measureText(parts[0]).width
-
-    for (let i = 0; i < parts.length; i++) {
-        let part = parts[i]
-        const current = ctx.measureText(part).width
-
-        if (current > maxWidth) {
-            maxWidth = current
-        }
-    }
-
-    return maxWidth
 }
 
 graphics.transform = function (width, height, degrees, bitmap) {
@@ -164,23 +130,14 @@ graphics.transform = function (width, height, degrees, bitmap) {
     return canvas
 }
 
-graphics.debug = function (ctx, o) {
-    ctx.lineWidth = 1
+graphics.debug = function (x, y, width, height, ctx) {
+    ctx.lineWidth = 2
     ctx.strokeStyle = "yellow"
-
-    if (o.canvas) {
-        ctx.strokeRect(
-            o.position.x - (o.canvas.width / 2),
-            o.position.y - (o.canvas.height / 2),
-            o.canvas.width,
-            o.canvas.height)
-    } else if (o.text) {
-        //TODO implement me!
-    }
-}
-
-graphics.createBoundingBox = function (startX, endX, startY, endY) {
-    return { startX, endX, startY, endY }
+    ctx.strokeRect(
+        x - (width / 2) - 1,
+        y - (height / 2) - 1,
+        width + 1,
+        height + 1)
 }
 
 graphics.strokeLine = function (x1, y1, x2, y2, color, ctx) {
