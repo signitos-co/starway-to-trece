@@ -21,15 +21,18 @@ graphics.resizeContainer = function (worldSize, viewSize, canvas) {
     console.log(`Scale ${this.scaleFactor}`)
 }
 
-graphics.drawSprite = function (sprite, ctx) {
+graphics.drawSprite = function (sprite, ctx, debug) {
     let tx = sprite.x - (sprite.canvas.width / 2)
     let ty = sprite.y - (sprite.canvas.height / 2)
 
     ctx.drawImage(sprite.canvas, tx, ty)
-    this.debug(sprite.x, sprite.y, sprite.canvas.width, sprite.canvas.height, ctx)
+
+    if (debug) {
+        this.debug(sprite.x, sprite.y, sprite.canvas.width, sprite.canvas.height, 'yellow', ctx)
+    }
 }
 
-graphics.drawText = function (label, ctx) {
+graphics.drawLabel = function (label, ctx, debug) {
     ctx.save()
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'center'
@@ -46,11 +49,12 @@ graphics.drawText = function (label, ctx) {
     ctx.font = label.size + 'px ' + label.font
     ctx.fillText(label.content, 0, 0)
 
-    const metrics = ctx.measureText(label.content)
-    const textWidth = metrics.width
-    const textHeight = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
-
-    this.debug(0, 0, textWidth, textHeight, ctx)
+    if (debug) {
+        const metrics = ctx.measureText(label.content)
+        const textWidth = metrics.width
+        const textHeight = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
+        this.debug(0, 0, textWidth, textHeight, label.color, ctx)
+    }
 
     ctx.restore()
 }
@@ -130,9 +134,9 @@ graphics.transform = function (width, height, degrees, bitmap) {
     return canvas
 }
 
-graphics.debug = function (x, y, width, height, ctx) {
+graphics.debug = function (x, y, width, height, color, ctx) {
     ctx.lineWidth = 2
-    ctx.strokeStyle = "yellow"
+    ctx.strokeStyle = color
     ctx.strokeRect(
         x - (width / 2) - 1,
         y - (height / 2) - 1,

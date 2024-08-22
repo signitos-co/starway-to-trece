@@ -10,24 +10,23 @@ function Game() {
     this.playerStep = 100
     this.elapsedTime = 0
     this.timerRunning = true
-    this.stepsInfo = new Label(4, 18, '', 'white', 13 * 2, 'Verdana')
-    this.timeInfo = new Label(852, 18, '', 'white', 13 * 2, 'Verdana')
+    this.stepsInfo = new Label(96, 18, '', 'white', 13 * 2, 'Arial')
+    this.timeInfo = new Label(852, 18, '', 'white', 13 * 2, 'Arial')
     this.floorLabels = []
-    this.labels = {
-        pause: new Label(800, 1600 - (13 * 3), 'Pause', 'white', 13 * 4, 'Verdana')
-    }
+    this.pauseButton = new Label(800, 1600 - (13 * 3), '||', 'white', 13 * 4, 'Arial')
+    this.playButton = new Label(500, 800, 'PLAY', 'white', 13 * 8, 'Arial')
 
     this.directionSteps = [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109]
 
-    this.current = 'InGame'
+    this.current = 'Intro'
 }
 
 const game = new Game()
 
-game.init = async function () {
+game.init = async function (canvas) {
     this.previous = performance.now()
 
-    this.canvas = document.getElementById('canvas')
+    this.canvas = canvas
     this.canvas.width = this.size.width
     this.canvas.height = this.size.height
 
@@ -45,28 +44,24 @@ game.init = async function () {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(944, y - 52, this.directionSteps.indexOf(i) + 2, 'white', 13 * 4, 'Verdana', true))
+            this.floorLabels.push(new Label(944, y - 52, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 13 * 4, 'Verdana'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 1, 'white', 13 * 4, 'Verdana', true))
+    this.floorLabels.push(new Label(944, this.steps[9].y + 52, '01', 'white', 13 * 4, 'Verdana'))
+    this.setPlayerPosition()
 }
 
 game.update = function (dt) {
     if (this.current == 'InGame') {
-        this.setPlayerPosition(this.playerStep)
-
-        if (this.playerStep == this.steps.length) {
-            this.timerRunning = false
-            this.updateRecord()
-        }
-
         if (this.timerRunning) {
             this.elapsedTime += dt
         }
+
+        this.timeInfo.content = this.formatTime()
     }
 }
 
@@ -79,16 +74,25 @@ game.onKeyUp = function (key) {
 }
 
 game.onPointerDown = function (event) {
-    if (this.current == 'InGame') {
-        let pauseHit = graphics.insideLabel(this.labels.pause, event, this.ctx)
-
-        if (pauseHit) {
-            console.log('Pause!')
+    if (this.current == 'Intro') {
+        if (graphics.insideLabel(this.playButton, event, this.ctx)) {
+            this.start()
+            return
+        }
+    } else if (this.current == 'InGame') {
+        if (graphics.insideLabel(this.pauseButton, event, this.ctx)) {
+            this.pause()
             return
         }
 
         if (this.playerStep - 1 < this.steps.length - 1) {
             this.playerStep++
+        }
+
+        this.setPlayerPosition()
+        if (this.playerStep == this.steps.length) {
+            this.timerRunning = false
+            this.updateRecord()
         }
     }
 }
@@ -97,26 +101,29 @@ game.onPointerUp = function (event) {
 
 }
 
-game.draw = function (ctx) {
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, this.size.width, this.size.height)
+game.draw = function () {
+    this.ctx.fillStyle = 'black'
+    this.ctx.fillRect(0, 0, this.size.width, this.size.height)
 
-    for (let step of this.steps) {
-        graphics.drawSprite(step, ctx)
+    if (this.current == 'Intro') {
+        graphics.drawLabel(this.playButton, this.ctx)
+    } else if (this.current == 'InGame') {
+        for (let step of this.steps) {
+            graphics.drawSprite(step, this.ctx)
+        }
+
+        this.stepsInfo.content = this.formatStep()
+        graphics.drawLabel(this.stepsInfo, this.ctx)
+        graphics.drawLabel(this.timeInfo, this.ctx)
+
+        for (let floor of this.floorLabels) {
+            graphics.drawLabel(floor, this.ctx)
+        }
+
+        graphics.drawLabel(this.pauseButton, this.ctx)
+
+        graphics.drawSprite(this.player, this.ctx)
     }
-
-    this.stepsInfo.content = this.formatStep()
-    graphics.drawText(this.stepsInfo, ctx)
-    this.timeInfo.content = this.formatTime()
-    graphics.drawText(this.timeInfo, ctx)
-
-    for (let floor of this.floorLabels) {
-        graphics.drawText(floor, ctx)
-    }
-
-    graphics.drawText(this.labels.pause, ctx)
-
-    graphics.drawSprite(this.player, ctx)
 }
 
 game.resize = function () {
@@ -124,19 +131,18 @@ game.resize = function () {
 }
 
 game.frame = function (dt) {
-    this.update(dt)
-
     this.ctx = this.canvas.getContext('2d', {
         alpha: false,
         imageSmoothingEnabled: false
     });
 
-    this.draw(this.ctx)
+    this.update(dt)
+    this.draw()
 }
 
-game.setPlayerPosition = function (playerStep) {
-    this.player.x = this.steps[playerStep - 1].x
-    this.player.y = this.steps[playerStep - 1].y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
+game.setPlayerPosition = function () {
+    this.player.x = this.steps[this.playerStep - 1].x
+    this.player.y = this.steps[this.playerStep - 1].y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
 }
 
 game.formatStep = function () {
@@ -172,4 +178,15 @@ game.updateRecord = function () {
             localStorage.setItem(key, Math.trunc(this.elapsedTime))
         }
     }
+}
+
+game.start = function(){
+    this.current = 'InGame'
+    this.elapsedTime = 0
+    this.playerStep = 1
+    this.setPlayerPosition()
+}
+
+game.pause = function () {
+    this.current = 'Intro'
 }

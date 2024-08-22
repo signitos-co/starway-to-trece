@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    await game.init()
+    await game.init(document.getElementById('canvas'))
 
     document.addEventListener('pointerdown', event => {
         if (event.button === 0 && event.isPrimary) {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         game.resize()
     });
 
-    function doFrame(timestamp){
+    function doFrame(timestamp) {
         const dt = timestamp - game.previous
         game.previous = timestamp
         game.frame(dt)
