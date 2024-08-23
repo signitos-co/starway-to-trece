@@ -9,16 +9,19 @@ function Game() {
     this.player = new Sprite(0, 0, null)
     this.playerStep = 100
     this.elapsedTime = 0
+    this.countdownTime = 0
     this.timerRunning = true
     this.stepsInfo = new Label(96, 18, '', 'white', 13 * 2, 'Arial')
     this.timeInfo = new Label(852, 18, '', 'white', 13 * 2, 'Arial')
     this.floorLabels = []
     this.homeButton = new Label(800, 1600 - (13 * 3), 'HOME', 'white', 13 * 2, 'Arial')
     this.playButton = new Label(500, 800, 'PLAY', 'white', 13 * 8, 'Arial')
+    this.countdownLabel = new Label(500, 800, '', 'white', 13 * 10, 'Arial')
 
     this.directionSteps = [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109]
 
     this.current = 'Intro'
+    this.showingCountdown = false
 }
 
 const game = new Game()
@@ -57,6 +60,16 @@ game.init = async function (canvas) {
 
 game.update = function (dt) {
     if (this.current == 'InGame') {
+        if (this.showingCountdown) {
+            this.countdownTime -= dt
+
+            if (this.countdownTime <= 0) {
+                this.showingCountdown = false
+                this.elapsedTime = 0
+                this.timerRunning = true
+            }
+        }
+
         if (this.timerRunning) {
             this.elapsedTime += dt
         }
@@ -74,12 +87,11 @@ game.onKeyUp = function (key) {
 }
 
 game.onPointerDown = function (event) {
-    if (this.current == 'Intro') {
-        if (graphics.insideLabel(this.playButton, event, this.ctx)) {
-            this.start()
+    if (this.current == 'InGame') {
+        if (this.showingCountdown) {
             return
         }
-    } else if (this.current == 'InGame') {
+
         if (graphics.insideLabel(this.homeButton, event, this.ctx)) {
             this.pause()
             return
@@ -98,7 +110,17 @@ game.onPointerDown = function (event) {
 }
 
 game.onPointerUp = function (event) {
-
+    if (this.current == 'Intro') {
+        if (graphics.insideLabel(this.playButton, event, this.ctx)) {
+            this.start()
+            return
+        }
+    } else if (this.current == 'InGame') {
+        if (graphics.insideLabel(this.homeButton, event, this.ctx)) {
+            this.pause()
+            return
+        }
+    }
 }
 
 game.draw = function () {
@@ -123,6 +145,18 @@ game.draw = function () {
         graphics.drawLabel(this.homeButton, this.ctx)
 
         graphics.drawSprite(this.player, this.ctx)
+
+        if (this.showingCountdown) {
+            const time = Math.round(this.countdownTime / 1000)
+            
+            if(time == 0){
+                this.countdownLabel.content = 'GO!'
+            } else{
+                this.countdownLabel.content = String(time)
+            }
+            
+            graphics.drawLabel(this.countdownLabel, this.ctx)
+        }
     }
 }
 
@@ -180,10 +214,12 @@ game.updateRecord = function () {
     }
 }
 
-game.start = function(){
+game.start = function () {
     this.current = 'InGame'
     this.elapsedTime = 0
-    this.timerRunning = true
+    this.timerRunning = false
+    this.showingCountdown = true
+    this.countdownTime = 3000
     this.playerStep = 1
     this.setPlayerPosition()
 }
