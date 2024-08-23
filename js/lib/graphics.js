@@ -34,7 +34,7 @@ graphics.drawSprite = function (sprite, ctx, debug) {
 
 graphics.drawLabel = function (label, ctx, debug) {
     ctx.save()
-    ctx.textBaseline = 'middle'
+    ctx.textBaseline = 'actualBoundingBoxAscent'
     ctx.textAlign = 'center'
 
     let x = 0
@@ -51,9 +51,9 @@ graphics.drawLabel = function (label, ctx, debug) {
 
     if (debug) {
         const metrics = ctx.measureText(label.content)
-        const textWidth = metrics.width
-        const textHeight = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
-        this.debug(0, 0, textWidth, textHeight, label.color, ctx)
+        const textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
+        const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+        this.debug(0, -textHeight / 2, textWidth, textHeight, label.color, ctx)
     }
 
     ctx.restore()
@@ -86,21 +86,20 @@ graphics.insideLabel = function (label, event, ctx) {
     const pointX = (event.clientX - rect.left) / this.scaleFactor
     const pointY = (event.clientY - rect.top) / this.scaleFactor
 
-    ctx.textBaseline = 'middle'
+    ctx.textBaseline = 'actualBoundingBoxAscent'
     ctx.textAlign = 'center'
     ctx.font = label.size + 'px ' + label.font
 
     const metrics = ctx.measureText(label.content)
-    const textWidth = metrics.width
-    const textHeight = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent)
+    const textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
+    const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
 
     const halfWidth = textWidth / 2
-    const halfHeight = textHeight / 2
 
     const startX = label.x - halfWidth
     const endX = label.x + halfWidth
-    const startY = label.y - halfHeight
-    const endY = label.y + halfHeight
+    const startY = label.y - textHeight
+    const endY = startY + textHeight
 
     return pointX >= startX && pointX <= endX && pointY >= startY && pointY <= endY
 }

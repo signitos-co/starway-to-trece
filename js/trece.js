@@ -13,7 +13,7 @@ function Game() {
     this.stepsInfo = new Label(96, 18, '', 'white', 13 * 2, 'Arial')
     this.timeInfo = new Label(852, 18, '', 'white', 13 * 2, 'Arial')
     this.floorLabels = []
-    this.pauseButton = new Label(800, 1600 - (13 * 3), '||', 'white', 13 * 4, 'Arial')
+    this.homeButton = new Label(800, 1600 - (13 * 3), 'HOME', 'white', 13 * 2, 'Arial')
     this.playButton = new Label(500, 800, 'PLAY', 'white', 13 * 8, 'Arial')
 
     this.directionSteps = [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109]
@@ -80,7 +80,7 @@ game.onPointerDown = function (event) {
             return
         }
     } else if (this.current == 'InGame') {
-        if (graphics.insideLabel(this.pauseButton, event, this.ctx)) {
+        if (graphics.insideLabel(this.homeButton, event, this.ctx)) {
             this.pause()
             return
         }
@@ -106,7 +106,7 @@ game.draw = function () {
     this.ctx.fillRect(0, 0, this.size.width, this.size.height)
 
     if (this.current == 'Intro') {
-        graphics.drawLabel(this.playButton, this.ctx)
+        graphics.drawLabel(this.playButton, this.ctx, true)
     } else if (this.current == 'InGame') {
         for (let step of this.steps) {
             graphics.drawSprite(step, this.ctx)
@@ -120,7 +120,7 @@ game.draw = function () {
             graphics.drawLabel(floor, this.ctx)
         }
 
-        graphics.drawLabel(this.pauseButton, this.ctx)
+        graphics.drawLabel(this.homeButton, this.ctx)
 
         graphics.drawSprite(this.player, this.ctx)
     }
@@ -183,6 +183,7 @@ game.updateRecord = function () {
 game.start = function(){
     this.current = 'InGame'
     this.elapsedTime = 0
+    this.timerRunning = true
     this.playerStep = 1
     this.setPlayerPosition()
 }
