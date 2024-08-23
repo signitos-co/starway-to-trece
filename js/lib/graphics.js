@@ -22,10 +22,10 @@ graphics.resizeContainer = function (worldSize, viewSize, canvas) {
 }
 
 graphics.drawSprite = function (sprite, ctx, debug) {
-    let tx = sprite.x - (sprite.canvas.width / 2)
-    let ty = sprite.y - (sprite.canvas.height / 2)
+    let x = sprite.x - (sprite.canvas.width / 2)
+    let y = sprite.y - (sprite.canvas.height / 2)
 
-    ctx.drawImage(sprite.canvas, tx, ty)
+    ctx.drawImage(sprite.canvas, x, y)
 
     if (debug) {
         this.debug(sprite.x, sprite.y, sprite.canvas.width, sprite.canvas.height, 'yellow', ctx)
@@ -116,7 +116,7 @@ graphics.transform = function (width, height, degrees, bitmap) {
 
     const canvas = new OffscreenCanvas(Math.round(targetWidth), Math.round(targetHeight))
 
-    const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: true })
+    const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: false })
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.translate(canvas.width / 2, canvas.height / 2)
     ctx.rotate(radians)

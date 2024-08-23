@@ -23,10 +23,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.addEventListener('contextmenu', event => event.preventDefault());
 
-    window.requestAnimationFrame(doFrame)
     window.addEventListener('resize', () => {
         game.resize()
     });
+
+    window.requestAnimationFrame(doFrame)
 
     function doFrame(timestamp) {
         const dt = timestamp - game.previous
