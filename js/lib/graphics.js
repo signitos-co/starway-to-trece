@@ -37,26 +37,19 @@ graphics.drawLabel = function (label, ctx, debug) {
     ctx.textBaseline = 'actualBoundingBoxAscent'
     ctx.textAlign = 'center'
 
-    let x = 0
-    let y = 0
-
-    x = label.x
-    y = label.y
-
-    ctx.translate(x, y)
+    let x = label.x
+    let y = label.y
 
     ctx.fillStyle = label.color
     ctx.font = label.size + 'px ' + label.font
-    ctx.fillText(label.content, 0, 0)
+    ctx.fillText(label.content, x, y)
 
     if (debug) {
         const metrics = ctx.measureText(label.content)
         const textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
         const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-        this.debug(0, -textHeight / 2, textWidth, textHeight, label.color, ctx)
+        this.debug(x, y -textHeight / 2, textWidth, textHeight, label.color, ctx)
     }
-
-    ctx.restore()
 }
 
 graphics.insideSprite = function (sprite, event) {

@@ -24,8 +24,6 @@ function Game() {
 const game = new Game()
 
 game.init = async function (canvas) {
-    this.previous = performance.now()
-
     this.canvas = canvas
     this.canvas.width = this.size.width
     this.canvas.height = this.size.height
@@ -53,6 +51,8 @@ game.init = async function (canvas) {
 
     this.floorLabels.push(new Label(944, this.steps[9].y + 52, '01', 'white', 13 * 4, 'Verdana'))
     this.setPlayerPosition()
+
+    this.previous = performance.now()
 }
 
 game.update = function (dt) {
