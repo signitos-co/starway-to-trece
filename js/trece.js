@@ -14,7 +14,10 @@ function Game() {
     this.stepsInfo = new Label(96, 18, '', 'white', 13 * 2, 'Arial')
     this.timeInfo = new Label(852, 18, '', 'white', 13 * 2, 'Arial')
     this.floorLabels = []
-    this.homeButton = new Label(800, 1600 - (13 * 3), 'HOME', 'white', 13 * 2, 'Arial')
+    this.timeLabel = new Label(500, 550, 'Time:', 'white', 13 * 7, 'Arial')
+    this.bestLabel = new Label(500, 650, 'Best:', 'white', 13 * 7, 'Arial')
+    this.homeButton = new Label(500, 750, 'HOME', 'white', 13 * 7, 'Arial')
+    this.tryAgainButton = new Label(500, 850, 'TRY AGAIN', 'white', 13 * 7, 'Arial')
     this.playButton = new Label(500, 800, 'PLAY', 'white', 13 * 8, 'Arial')
     this.countdownLabel = new Label(500, 800, '', 'white', 13 * 10, 'Arial')
 
@@ -22,6 +25,9 @@ function Game() {
 
     this.current = 'Intro'
     this.showingCountdown = false
+    this.showingScore = false
+
+    this.key = 'vemi.games.starway-to-13.best'
 }
 
 const game = new Game()
@@ -74,7 +80,7 @@ game.update = function (dt) {
             this.elapsedTime += dt
         }
 
-        this.timeInfo.content = this.formatTime()
+        this.timeInfo.content = this.formatTime(this.elapsedTime)
     }
 }
 
@@ -92,11 +98,6 @@ game.onPointerDown = function (event) {
             return
         }
 
-        if (graphics.insideLabel(this.homeButton, event, this.ctx)) {
-            this.pause()
-            return
-        }
-
         if (this.playerStep - 1 < this.steps.length - 1) {
             this.playerStep++
         }
@@ -104,7 +105,7 @@ game.onPointerDown = function (event) {
         this.setPlayerPosition()
         if (this.playerStep == this.steps.length) {
             this.timerRunning = false
-            this.updateRecord()
+            this.end()
         }
     }
 }
@@ -113,12 +114,14 @@ game.onPointerUp = function (event) {
     if (this.current == 'Intro') {
         if (graphics.insideLabel(this.playButton, event, this.ctx)) {
             this.start()
-            return
         }
     } else if (this.current == 'InGame') {
-        if (graphics.insideLabel(this.homeButton, event, this.ctx)) {
-            this.pause()
-            return
+        if (this.showingScore) {
+            if (graphics.insideLabel(this.homeButton, event, this.ctx)) {
+                this.home()
+            } else if (graphics.insideLabel(this.tryAgainButton, event, this.ctx)) {
+                this.start()
+            }
         }
     }
 }
@@ -142,20 +145,25 @@ game.draw = function () {
             graphics.drawLabel(floor, this.ctx)
         }
 
-        graphics.drawLabel(this.homeButton, this.ctx)
-
         graphics.drawSprite(this.player, this.ctx)
 
         if (this.showingCountdown) {
             const time = Math.round(this.countdownTime / 1000)
-            
-            if(time == 0){
+
+            if (time == 0) {
                 this.countdownLabel.content = 'GO!'
-            } else{
+            } else {
                 this.countdownLabel.content = String(time)
             }
-            
+
             graphics.drawLabel(this.countdownLabel, this.ctx)
+        }
+
+        if (this.showingScore) {
+            graphics.drawLabel(this.timeLabel, this.ctx)
+            graphics.drawLabel(this.bestLabel, this.ctx)
+            graphics.drawLabel(this.tryAgainButton, this.ctx)
+            graphics.drawLabel(this.homeButton, this.ctx)
         }
     }
 }
@@ -184,8 +192,7 @@ game.formatStep = function () {
 }
 
 //GPT
-game.formatTime = function formatTime() {
-    const milliseconds = this.elapsedTime
+game.formatTime = function formatTime(milliseconds) {
     const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60))
     const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000)
     const remainingMilliseconds = Math.floor(milliseconds % 1000)
@@ -202,14 +209,13 @@ game.isDirectionStep = function (i) {
 }
 
 game.updateRecord = function () {
-    const key = 'co.signitos.starway-to-13.record'
-    let currentRecord = localStorage.getItem(key)
+    let currentRecord = localStorage.getItem(this.key)
 
     if (currentRecord == null) {
-        localStorage.setItem(key, this.elapsedTime)
+        localStorage.setItem(this.key, this.elapsedTime)
     } else {
-        if (this.elapsedTime < Number(localStorage.getItem(key))) {
-            localStorage.setItem(key, Math.trunc(this.elapsedTime))
+        if (this.elapsedTime < Number(localStorage.getItem(this.key))) {
+            localStorage.setItem(this.key, Math.trunc(this.elapsedTime))
         }
     }
 }
@@ -219,11 +225,20 @@ game.start = function () {
     this.elapsedTime = 0
     this.timerRunning = false
     this.showingCountdown = true
+    this.showingScore = false
     this.countdownTime = 3000
-    this.playerStep = 1
+    this.playerStep = 99
     this.setPlayerPosition()
 }
 
-game.pause = function () {
+game.home = function () {
     this.current = 'Intro'
+}
+
+game.end = function () {
+    this.updateRecord()
+    this.timeLabel.content = `Time: ${this.formatTime(this.elapsedTime)}`
+    const best = localStorage.getItem(this.key)
+    this.bestLabel.content = `Best: ${this.formatTime(best)}`
+    this.showingScore = true
 }
