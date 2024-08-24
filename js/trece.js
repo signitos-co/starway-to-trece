@@ -1,3 +1,6 @@
+const graphics = new Graphics()
+const mathUtils = new MathUtils()
+
 function Game() {
     this.steps = []
     this.stepsCount = 113
@@ -30,9 +33,7 @@ function Game() {
     this.key = 'vemi.games.starway-to-13.best'
 }
 
-const game = new Game()
-
-game.init = async function (canvas) {
+Game.prototype.init = async function (canvas) {
     this.canvas = canvas
     this.canvas.width = this.size.width
     this.canvas.height = this.size.height
@@ -64,7 +65,7 @@ game.init = async function (canvas) {
     this.previous = performance.now()
 }
 
-game.update = function (dt) {
+Game.prototype.update = function (dt) {
     if (this.current == 'InGame') {
         if (this.showingCountdown) {
             this.countdownTime -= dt
@@ -84,15 +85,15 @@ game.update = function (dt) {
     }
 }
 
-game.onKeyDown = function (key) {
+Game.prototype.onKeyDown = function (key) {
 
 }
 
-game.onKeyUp = function (key) {
+Game.prototype.onKeyUp = function (key) {
 
 }
 
-game.onPointerDown = function (event) {
+Game.prototype.onPointerDown = function (event) {
     if (this.current == 'InGame') {
         if (this.showingCountdown) {
             return
@@ -110,7 +111,7 @@ game.onPointerDown = function (event) {
     }
 }
 
-game.onPointerUp = function (event) {
+Game.prototype.onPointerUp = function (event) {
     if (this.current == 'Intro') {
         if (graphics.insideLabel(this.playButton, event, this.ctx)) {
             this.start()
@@ -126,7 +127,7 @@ game.onPointerUp = function (event) {
     }
 }
 
-game.draw = function () {
+Game.prototype.draw = function () {
     this.ctx.fillStyle = 'black'
     this.ctx.fillRect(0, 0, this.size.width, this.size.height)
 
@@ -168,11 +169,11 @@ game.draw = function () {
     }
 }
 
-game.resize = function () {
+Game.prototype.resize = function () {
     graphics.resizeContainer(this.size, { width: window.innerWidth, height: window.innerHeight }, this.canvas)
 }
 
-game.frame = function (dt) {
+Game.prototype.frame = function (dt) {
     this.ctx = this.canvas.getContext('2d', {
         alpha: false,
         imageSmoothingEnabled: false
@@ -182,17 +183,17 @@ game.frame = function (dt) {
     this.draw()
 }
 
-game.setPlayerPosition = function () {
+Game.prototype.setPlayerPosition = function () {
     this.player.x = this.steps[this.playerStep - 1].x
     this.player.y = this.steps[this.playerStep - 1].y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
 }
 
-game.formatStep = function () {
+Game.prototype.formatStep = function () {
     return `Step ${String(this.playerStep).padStart(3, '0')} of ${this.stepsCount}`
 }
 
 //GPT
-game.formatTime = function formatTime(milliseconds) {
+Game.prototype.formatTime = function formatTime(milliseconds) {
     const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60))
     const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000)
     const remainingMilliseconds = Math.floor(milliseconds % 1000)
@@ -204,11 +205,11 @@ game.formatTime = function formatTime(milliseconds) {
     return `${formattedMinutes}:${formattedSeconds}.${formattedMilliseconds}`
 }
 
-game.isDirectionStep = function (i) {
+Game.prototype.isDirectionStep = function (i) {
     return this.directionSteps.indexOf(i) != -1
 }
 
-game.updateRecord = function () {
+Game.prototype.updateRecord = function () {
     let currentRecord = localStorage.getItem(this.key)
 
     if (currentRecord == null) {
@@ -220,7 +221,7 @@ game.updateRecord = function () {
     }
 }
 
-game.start = function () {
+Game.prototype.start = function () {
     this.current = 'InGame'
     this.elapsedTime = 0
     this.timerRunning = false
@@ -231,11 +232,11 @@ game.start = function () {
     this.setPlayerPosition()
 }
 
-game.home = function () {
+Game.prototype.home = function () {
     this.current = 'Intro'
 }
 
-game.end = function () {
+Game.prototype.end = function () {
     this.updateRecord()
     this.timeLabel.content = `Time: ${this.formatTime(this.elapsedTime)}`
     const best = localStorage.getItem(this.key)

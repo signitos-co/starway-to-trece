@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    const game = new Game()
     await game.init(document.getElementById('canvas'))
 
     document.addEventListener('pointerdown', event => {
