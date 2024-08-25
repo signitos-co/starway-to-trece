@@ -19,6 +19,20 @@ Graphics.prototype.resizeContainer = function (worldSize, viewSize, canvas) {
     console.log(`Scale ${this.scaleFactor}`)
 }
 
+Graphics.prototype.draw = function (objects, ctx, debug) {
+    objects.sort(mathUtils.zCompare)
+
+    for (let i = objects.length - 1; i >= 0; i--) {
+        let o = objects[i]
+        
+        if (o instanceof Sprite) {
+            this.drawSprite(o, ctx, debug)
+        } else if (o instanceof Label) {
+            this.drawLabel(o, ctx, debug)
+        }
+    }
+}
+
 Graphics.prototype.drawSprite = function (sprite, ctx, debug) {
     let x = sprite.x - (sprite.canvas.width / 2)
     let y = sprite.y - (sprite.canvas.height / 2)
@@ -46,8 +60,28 @@ Graphics.prototype.drawLabel = function (label, ctx, debug) {
         const metrics = ctx.measureText(label.content)
         const textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
         const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-        this.debug(x, y -textHeight / 2, textWidth, textHeight, label.color, ctx)
+        this.debug(x, y - textHeight / 2, textWidth, textHeight, label.color, ctx)
     }
+}
+
+Graphics.prototype.hit = function (objects, event, ctx) {
+    for (let i = 0; i < objects.length; i++) {
+        let o = objects[i]
+
+        if (o.hit) {
+            if (o instanceof Sprite) {
+                if (this.insideSprite(o, event)) {
+                    return o
+                }
+            } else if (o instanceof Label) {
+                if (this.insideLabel(o, event, ctx)) {
+                    return o
+                }
+            }
+        }
+    }
+
+    return null
 }
 
 Graphics.prototype.insideSprite = function (sprite, event) {

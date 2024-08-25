@@ -9,27 +9,27 @@ function Game() {
     this.stepSize = { width: 100, height: 32 }
     this.playerSize = { width: 32, height: 64 }
     this.dx = this.stepSize.width
-    this.player = new Sprite(0, 0, null)
+    this.player = new Sprite(0, 0, 1, false, null)
     this.playerStep = 100
     this.elapsedTime = 0
     this.countdownTime = 0
     this.timerRunning = true
-    this.stepsInfo = new Label(96, 18, '', 'white', 13 * 2, 'Arial')
-    this.timeInfo = new Label(852, 18, '', 'white', 13 * 2, 'Arial')
+    this.stepsInfo = new Label(96, 18, 0, false, '', 'white', 13 * 2, 'Arial')
+    this.timeInfo = new Label(852, 18, 0, false, '', 'white', 13 * 2, 'Arial')
     this.floorLabels = []
-    this.timeLabel = new Label(500, 550, 'Time:', 'white', 13 * 7, 'Arial')
-    this.bestLabel = new Label(500, 650, 'Best:', 'white', 13 * 7, 'Arial')
-    this.homeButton = new Label(500, 750, 'HOME', 'white', 13 * 7, 'Arial')
-    this.tryAgainButton = new Label(500, 850, 'TRY AGAIN', 'white', 13 * 7, 'Arial')
-    this.playButton = new Label(500, 800, 'PLAY', 'white', 13 * 8, 'Arial')
-    this.countdownLabel = new Label(500, 800, '', 'white', 13 * 10, 'Arial')
+    this.timeLabel = new Label(500, 550, 0, false, 'Time:', 'white', 13 * 7, 'Arial')
+    this.bestLabel = new Label(500, 650, 0, false, 'Best:', 'white', 13 * 7, 'Arial')
+    this.homeButton = new Label(500, 750, 0, true, 'HOME', 'white', 13 * 7, 'Arial')
+    this.tryAgainButton = new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 13 * 7, 'Arial')
+    this.playButton = new Label(500, 800, 0, true, 'PLAY', 'white', 13 * 8, 'Arial')
+    this.countdownLabel = new Label(500, 800, 0, false, '', 'white', 13 * 10, 'Arial')
 
     this.directionSteps = [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109]
 
-    this.current = 'Intro'
     this.showingCountdown = false
     this.showingScore = false
 
+    this.objects = []
     this.key = 'vemi.games.starway-to-13.best'
 }
 
@@ -47,42 +47,50 @@ Game.prototype.init = async function (canvas) {
     let y = 1600 - (this.stepSize.height * 0.5)
     let sign = 1
     for (let i = 1; i <= this.stepsCount; i++) {
-        this.steps.push(new Sprite(x, y, stepCanvas))
+        this.steps.push(new Sprite(x, y, 2, false, stepCanvas))
 
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(944, y - 52, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 13 * 4, 'Verdana'))
+            this.floorLabels.push(new Label(944, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 13 * 4, 'Verdana'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(944, this.steps[9].y + 52, '01', 'white', 13 * 4, 'Verdana'))
+    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', 'white', 13 * 4, 'Verdana'))
     this.setPlayerPosition()
 
+    this.objects.push(this.playButton)
     this.previous = performance.now()
 }
 
 Game.prototype.update = function (dt) {
-    if (this.current == 'InGame') {
-        if (this.showingCountdown) {
-            this.countdownTime -= dt
+    if (this.showingCountdown) {
+        this.countdownTime -= dt
 
-            if (this.countdownTime <= 0) {
-                this.showingCountdown = false
-                this.elapsedTime = 0
-                this.timerRunning = true
-            }
+        const time = Math.round(this.countdownTime / 1000)
+
+        if (time == 0) {
+            this.countdownLabel.content = 'GO!'
+        } else {
+            this.countdownLabel.content = String(time)
         }
 
-        if (this.timerRunning) {
-            this.elapsedTime += dt
+        if (this.countdownTime <= 0) {
+            this.showingCountdown = false
+            this.elapsedTime = 0
+            this.timerRunning = true
+            this.remove(this.countdownLabel)
         }
-
-        this.timeInfo.content = this.formatTime(this.elapsedTime)
     }
+
+    if (this.timerRunning) {
+        this.elapsedTime += dt
+    }
+
+    this.timeInfo.content = this.formatTime(this.elapsedTime)
 }
 
 Game.prototype.onKeyDown = function (key) {
@@ -94,11 +102,11 @@ Game.prototype.onKeyUp = function (key) {
 }
 
 Game.prototype.onPointerDown = function (event) {
-    if (this.current == 'InGame') {
-        if (this.showingCountdown) {
-            return
-        }
+    if (this.showingCountdown) {
+        return
+    }
 
+    if (this.timerRunning) {
         if (this.playerStep - 1 < this.steps.length - 1) {
             this.playerStep++
         }
@@ -112,17 +120,15 @@ Game.prototype.onPointerDown = function (event) {
 }
 
 Game.prototype.onPointerUp = function (event) {
-    if (this.current == 'Intro') {
-        if (graphics.insideLabel(this.playButton, event, this.ctx)) {
+    const hit = graphics.hit(this.objects, event, this.ctx)
+
+    if (hit) {
+        if (hit == this.playButton) {
             this.start()
-        }
-    } else if (this.current == 'InGame') {
-        if (this.showingScore) {
-            if (graphics.insideLabel(this.homeButton, event, this.ctx)) {
-                this.home()
-            } else if (graphics.insideLabel(this.tryAgainButton, event, this.ctx)) {
-                this.start()
-            }
+        } else if (hit == this.homeButton) {
+            this.home()
+        } else if (hit == this.tryAgainButton) {
+            this.start()
         }
     }
 }
@@ -131,42 +137,7 @@ Game.prototype.draw = function () {
     this.ctx.fillStyle = 'black'
     this.ctx.fillRect(0, 0, this.size.width, this.size.height)
 
-    if (this.current == 'Intro') {
-        graphics.drawLabel(this.playButton, this.ctx, true)
-    } else if (this.current == 'InGame') {
-        for (let step of this.steps) {
-            graphics.drawSprite(step, this.ctx)
-        }
-
-        this.stepsInfo.content = this.formatStep()
-        graphics.drawLabel(this.stepsInfo, this.ctx)
-        graphics.drawLabel(this.timeInfo, this.ctx)
-
-        for (let floor of this.floorLabels) {
-            graphics.drawLabel(floor, this.ctx)
-        }
-
-        graphics.drawSprite(this.player, this.ctx)
-
-        if (this.showingCountdown) {
-            const time = Math.round(this.countdownTime / 1000)
-
-            if (time == 0) {
-                this.countdownLabel.content = 'GO!'
-            } else {
-                this.countdownLabel.content = String(time)
-            }
-
-            graphics.drawLabel(this.countdownLabel, this.ctx)
-        }
-
-        if (this.showingScore) {
-            graphics.drawLabel(this.timeLabel, this.ctx)
-            graphics.drawLabel(this.bestLabel, this.ctx)
-            graphics.drawLabel(this.tryAgainButton, this.ctx)
-            graphics.drawLabel(this.homeButton, this.ctx)
-        }
-    }
+    graphics.draw(this.objects, this.ctx, false)
 }
 
 Game.prototype.resize = function () {
@@ -230,10 +201,28 @@ Game.prototype.start = function () {
     this.countdownTime = 3000
     this.playerStep = 99
     this.setPlayerPosition()
+
+    this.objects = []
+    for (let step of this.steps) {
+        this.objects.push(step)
+    }
+
+    this.stepsInfo.content = this.formatStep()
+
+    this.objects.push(this.stepsInfo)
+    this.objects.push(this.timeInfo)
+
+    for (let floor of this.floorLabels) {
+        this.objects.push(floor)
+    }
+
+    this.objects.push(this.player)
+    this.objects.push(this.countdownLabel)
 }
 
 Game.prototype.home = function () {
-    this.current = 'Intro'
+    this.objects = []
+    this.objects.push(this.playButton)
 }
 
 Game.prototype.end = function () {
@@ -242,4 +231,16 @@ Game.prototype.end = function () {
     const best = localStorage.getItem(this.key)
     this.bestLabel.content = `Best: ${this.formatTime(best)}`
     this.showingScore = true
+
+    this.objects.push(this.timeLabel)
+    this.objects.push(this.bestLabel)
+    this.objects.push(this.tryAgainButton)
+    this.objects.push(this.homeButton)
+}
+
+Game.prototype.remove = function (o) {
+    let index = this.objects.findIndex(item => item == o);
+    if (index !== -1) {
+        this.objects.splice(index, 1);
+    }
 }
