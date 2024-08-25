@@ -1,28 +1,30 @@
 const graphics = new Graphics()
 const mathUtils = new MathUtils()
+const sound = new Sound()
 
 function Game() {
     this.steps = []
     this.stepsCount = 113
     this.dy = 13
     this.size = { width: 1000, height: 1600 }
-    this.stepSize = { width: 100, height: 32 }
-    this.playerSize = { width: 32, height: 64 }
+    this.stepSize = { width: 100, height: 24 }
+    this.playerSize = { width: 100, height: 96 }
     this.dx = this.stepSize.width
     this.player = new Sprite(0, 0, 1, false, null)
     this.playerStep = 100
     this.elapsedTime = 0
     this.countdownTime = 0
-    this.timerRunning = true
-    this.stepsInfo = new Label(96, 18, 0, false, '', 'white', 13 * 2, 'Arial')
-    this.timeInfo = new Label(852, 18, 0, false, '', 'white', 13 * 2, 'Arial')
+    this.timerRunning = false
+    this.stepsInfo = new Label(96, 18, 0, false, '', 'black', 13 * 2, 'Arial')
+    this.timeInfo = new Label(852, 18, 0, false, '', 'black', 13 * 2, 'Arial')
     this.floorLabels = []
-    this.timeLabel = new Label(500, 550, 0, false, 'Time:', 'white', 13 * 7, 'Arial')
-    this.bestLabel = new Label(500, 650, 0, false, 'Best:', 'white', 13 * 7, 'Arial')
-    this.homeButton = new Label(500, 750, 0, true, 'HOME', 'white', 13 * 7, 'Arial')
-    this.tryAgainButton = new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 13 * 7, 'Arial')
-    this.playButton = new Label(500, 800, 0, true, 'PLAY', 'white', 13 * 8, 'Arial')
-    this.countdownLabel = new Label(500, 800, 0, false, '', 'white', 13 * 10, 'Arial')
+    this.timeLabel = new Label(500, 550, 0, false, 'Time:', 'black', 13 * 4, 'Arial')
+    this.bestLabel = new Label(500, 600, 0, false, 'Best:', 'black', 13 * 4, 'Arial')
+    this.homeButton = new Label(500, 750, 0, true, 'HOME', 'black', 13 * 7, 'Arial')
+    this.tryAgainButton = new Label(500, 850, 0, true, 'TRY AGAIN', 'black', 13 * 7, 'Arial')
+    this.playButton = new Label(500, 800, 0, true, 'PLAY', 'black', 13 * 8, 'Arial')
+    this.countdownLabel = new Label(500, 800, 0, false, '', 'black', 13 * 10, 'Arial')
+    this.scoreBackground = null
 
     this.directionSteps = [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109]
 
@@ -31,6 +33,8 @@ function Game() {
 
     this.objects = []
     this.key = 'vemi.games.starway-to-13.best'
+    this.audiosLoaded = false
+    this.tapAudio = null
 }
 
 Game.prototype.init = async function (canvas) {
@@ -40,8 +44,12 @@ Game.prototype.init = async function (canvas) {
 
     this.resize();
 
+    this.tapAudio = await sound.loadAudio('./snd/tap.opus')
+
     let stepCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step.png'))
-    this.player.canvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/player.png'))
+    this.player.canvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/front.png'))
+    this.scoreBackground= new Sprite(500, 680, 0.5, false, null)
+    this.scoreBackground.canvas = graphics.transform(1000, 800, 0, await graphics.loadBitmap('./img/step.png'))
 
     let x = this.stepSize.width * 0.5
     let y = 1600 - (this.stepSize.height * 0.5)
@@ -52,14 +60,14 @@ Game.prototype.init = async function (canvas) {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(944, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 13 * 4, 'Verdana'))
+            this.floorLabels.push(new Label(944, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'black', 13 * 4, 'Verdana'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', 'white', 13 * 4, 'Verdana'))
+    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', 'black', 13 * 4, 'Verdana'))
     this.setPlayerPosition()
 
     this.objects.push(this.playButton)
@@ -108,6 +116,7 @@ Game.prototype.onPointerDown = function (event) {
 
     if (this.timerRunning) {
         if (this.playerStep - 1 < this.steps.length - 1) {
+            sound.playAudio(this.tapAudio)
             this.playerStep++
         }
 
@@ -122,7 +131,7 @@ Game.prototype.onPointerDown = function (event) {
 Game.prototype.onPointerUp = function (event) {
     const hit = graphics.hit(this.objects, event, this.ctx)
 
-    if (hit) {
+    if (hit != null) {
         if (hit == this.playButton) {
             this.start()
         } else if (hit == this.homeButton) {
@@ -134,7 +143,7 @@ Game.prototype.onPointerUp = function (event) {
 }
 
 Game.prototype.draw = function () {
-    this.ctx.fillStyle = 'black'
+    this.ctx.fillStyle = 'white'
     this.ctx.fillRect(0, 0, this.size.width, this.size.height)
 
     graphics.draw(this.objects, this.ctx, false)
@@ -231,11 +240,13 @@ Game.prototype.end = function () {
     const best = localStorage.getItem(this.key)
     this.bestLabel.content = `Best: ${this.formatTime(best)}`
     this.showingScore = true
+    this.timerRunning = false
 
     this.objects.push(this.timeLabel)
     this.objects.push(this.bestLabel)
     this.objects.push(this.tryAgainButton)
     this.objects.push(this.homeButton)
+    this.objects.push(this.scoreBackground)
 }
 
 Game.prototype.remove = function (o) {
