@@ -21,6 +21,7 @@ const game = {
     playButton: new Label(500, 800, 0, true, 'PLAY', 'white', 'bold', 64, 'Arial'),
     countdownLabel: new Label(500, 800, 0, false, '', 'white', 'bold', 96, 'Arial'),
     scoreBackground: new Sprite(500, 680, 0.5, false, null),
+    homeBackground: new Sprite(500, 800, 0.5, false, null),
     directionSteps: [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109],
     showingCountdown: false,
     showingScore: false,
@@ -35,13 +36,15 @@ const game = {
     stepOnCanvas: null,
     stepOffCanvas: null,
     tomatoCanvas: null,
-    carrotCanvas: null
+    carrotCanvas: null,
+    introTexts: []
 }
 
-game.init = async function (canvas) {
+game.init = async function (canvas, ctx) {
     this.canvas = canvas
     this.canvas.width = this.size.width
     this.canvas.height = this.size.height
+    this.ctx = ctx
 
     this.tapAudio = await sound.loadAudio('./snd/tap.opus')
 
@@ -53,7 +56,8 @@ game.init = async function (canvas) {
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
 
     this.player.canvas = this.rightCanvas
-    this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/score-background.png'))
+    this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
+    this.homeBackground.canvas = graphics.transform(1000, 1600, 0, await graphics.loadBitmap('./img/step-on.png'))
 
     this.tomatoCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/tomato.png'))
     this.carrotCanvas = graphics.transform(64, 32, 0, await graphics.loadBitmap('./img/carrot.png'))
@@ -78,6 +82,34 @@ game.init = async function (canvas) {
 
     this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'Arial'))
     this.objects.push(this.playButton)
+
+    const texts = [
+        'Bad Luck!',
+        'Mom lives on the 13th floor',
+        'and the lift is broken.',
+        'She just came back with the trolley',
+        'full of groceries.',
+        'Help her get to the 13th floor',
+        'by tapping as fast as you can!'
+    ]
+
+    const marginX = 13 * 7
+    let textY = 13 * 7
+
+    for (let i = 0; i < texts.length; i++) {
+        let text = texts[i]
+        let line = new Label(0, 0, 0, false, text, 'white', i == 0 ? 'bold' : 'italic', 13 * 4, 'Arial')
+        let metrics = graphics.measureLabel(line, this.ctx)
+        let textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
+        line.x = marginX + (textWidth * 0.5)
+        line.y = textY
+        this.introTexts.push(line)
+        this.objects.push(line)
+        textY += 13 * 4
+    }
+
+    this.objects.push(this.homeBackground)
+
     this.previous = performance.now()
 }
 
@@ -254,6 +286,12 @@ game.start = function () {
 game.home = function () {
     this.objects = []
     this.objects.push(this.playButton)
+
+    for (let text of this.introTexts) {
+        this.objects.push(text)
+    }
+
+    this.objects.push(this.homeBackground)
 }
 
 game.end = function () {

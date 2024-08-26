@@ -57,7 +57,7 @@ graphics.drawLabel = function (label, ctx, debug) {
     ctx.fillText(label.content, x, y)
 
     if (debug) {
-        const metrics = ctx.measureText(label.content)
+        const metrics = this.measureLabel(label, ctx)
         const textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
         const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
         this.debug(x, y - textHeight / 2, textWidth, textHeight, label.color, ctx)
@@ -111,11 +111,7 @@ graphics.insideLabel = function (label, event, ctx) {
     const pointX = (event.clientX - rect.left) / this.scaleFactor
     const pointY = (event.clientY - rect.top) / this.scaleFactor
 
-    ctx.textBaseline = 'actualBoundingBoxAscent'
-    ctx.textAlign = 'center'
-    ctx.font = label.size + 'px ' + label.font
-
-    const metrics = ctx.measureText(label.content)
+    const metrics = this.measureLabel(label, ctx)
     const textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
     const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
 
@@ -184,4 +180,12 @@ graphics.scaleWidth = function (width, rotation, bitmap) {
 graphics.scaleHeight = function (height, rotation, bitmap) {
     const scaleFactor = height / bitmap.height
     return this.transform(bitmap.width * scaleFactor, bitmap.height * scaleFactor, rotation, bitmap)
+}
+
+graphics.measureLabel = function (label, ctx) {
+    ctx.textBaseline = 'actualBoundingBoxAscent'
+    ctx.textAlign = 'center'
+    ctx.font = `${label.style} ${label.size}px ${label.font}`
+
+    return ctx.measureText(label.content)
 }
