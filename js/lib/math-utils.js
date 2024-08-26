@@ -1,10 +1,9 @@
-function MathUtils() {
-}
+const mathUtils = {}
 
-MathUtils.prototype.degreesToRadians = function (degrees) {
+mathUtils.degreesToRadians = function (degrees) {
     return - (degrees * Math.PI / 180)
 }
 
-MathUtils.prototype.zCompare = function (a, b) {
+mathUtils.zCompare = function (a, b) {
     return a.z - b.z
 }

@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const game = new Game()
     await game.init(document.getElementById('canvas'))
+    graphics.resizeContainer(game.size, { width: window.innerWidth, height: window.innerHeight }, game.canvas)
 
     document.addEventListener('pointerdown', event => {
         if (event.button === 0 && event.isPrimary) {
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('contextmenu', event => event.preventDefault());
 
     window.addEventListener('resize', () => {
-        game.resize()
+        graphics.resizeContainer(game.size, { width: window.innerWidth, height: window.innerHeight }, game.canvas)
     });
 
     window.requestAnimationFrame(doFrame)
@@ -33,7 +33,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     function doFrame(timestamp) {
         const dt = timestamp - game.previous
         game.previous = timestamp
-        game.frame(dt)
+
+        game.ctx = game.canvas.getContext('2d', {
+            alpha: false,
+            imageSmoothingEnabled: false
+        });
+
+        game.update(dt)
+        game.clear()
+        graphics.draw(game.objects, game.ctx, game.debug)
         window.requestAnimationFrame(doFrame)
     }
 });

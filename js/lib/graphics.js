@@ -1,8 +1,8 @@
-function Graphics() {
-    this.scaleFactor = 1
+const graphics = {
+    scaleFactor: 1
 }
 
-Graphics.prototype.resizeContainer = function (worldSize, viewSize, canvas) {
+graphics.resizeContainer = function (worldSize, viewSize, canvas) {
     const factorWidth = viewSize.width / worldSize.width
     const factorHeight = viewSize.height / worldSize.height
     this.scaleFactor = Math.min(factorHeight, factorWidth)
@@ -19,12 +19,12 @@ Graphics.prototype.resizeContainer = function (worldSize, viewSize, canvas) {
     console.log(`Scale ${this.scaleFactor}`)
 }
 
-Graphics.prototype.draw = function (objects, ctx, debug) {
+graphics.draw = function (objects, ctx, debug) {
     objects.sort(mathUtils.zCompare)
 
     for (let i = objects.length - 1; i >= 0; i--) {
         let o = objects[i]
-        
+
         if (o instanceof Sprite) {
             this.drawSprite(o, ctx, debug)
         } else if (o instanceof Label) {
@@ -33,7 +33,7 @@ Graphics.prototype.draw = function (objects, ctx, debug) {
     }
 }
 
-Graphics.prototype.drawSprite = function (sprite, ctx, debug) {
+graphics.drawSprite = function (sprite, ctx, debug) {
     let x = sprite.x - (sprite.canvas.width / 2)
     let y = sprite.y - (sprite.canvas.height / 2)
 
@@ -44,7 +44,7 @@ Graphics.prototype.drawSprite = function (sprite, ctx, debug) {
     }
 }
 
-Graphics.prototype.drawLabel = function (label, ctx, debug) {
+graphics.drawLabel = function (label, ctx, debug) {
     ctx.save()
     ctx.textBaseline = 'actualBoundingBoxAscent'
     ctx.textAlign = 'center'
@@ -53,7 +53,7 @@ Graphics.prototype.drawLabel = function (label, ctx, debug) {
     let y = label.y
 
     ctx.fillStyle = label.color
-    ctx.font = label.size + 'px ' + label.font
+    ctx.font = `${label.style} ${label.size}px ${label.font}`
     ctx.fillText(label.content, x, y)
 
     if (debug) {
@@ -64,7 +64,7 @@ Graphics.prototype.drawLabel = function (label, ctx, debug) {
     }
 }
 
-Graphics.prototype.hit = function (objects, event, ctx) {
+graphics.hit = function (objects, event, ctx) {
     for (let i = 0; i < objects.length; i++) {
         let o = objects[i]
 
@@ -84,7 +84,7 @@ Graphics.prototype.hit = function (objects, event, ctx) {
     return null
 }
 
-Graphics.prototype.insideSprite = function (sprite, event) {
+graphics.insideSprite = function (sprite, event) {
     const rect = event.target.getBoundingClientRect()
     let pointX = (event.clientX - rect.left) / this.scaleFactor
     let pointY = (event.clientY - rect.top) / this.scaleFactor
@@ -106,7 +106,7 @@ Graphics.prototype.insideSprite = function (sprite, event) {
     return hit
 }
 
-Graphics.prototype.insideLabel = function (label, event, ctx) {
+graphics.insideLabel = function (label, event, ctx) {
     const rect = event.target.getBoundingClientRect()
     const pointX = (event.clientX - rect.left) / this.scaleFactor
     const pointY = (event.clientY - rect.top) / this.scaleFactor
@@ -129,7 +129,7 @@ Graphics.prototype.insideLabel = function (label, event, ctx) {
     return pointX >= startX && pointX <= endX && pointY >= startY && pointY <= endY
 }
 
-Graphics.prototype.loadBitmap = async function (path) {
+graphics.loadBitmap = async function (path) {
     console.log('Will load ' + path)
 
     const response = await fetch(path)
@@ -137,7 +137,7 @@ Graphics.prototype.loadBitmap = async function (path) {
     return window.createImageBitmap(blob)
 }
 
-Graphics.prototype.transform = function (width, height, degrees, bitmap) {
+graphics.transform = function (width, height, degrees, bitmap) {
     const radians = mathUtils.degreesToRadians(degrees)
     const cosAngle = Math.abs(Math.cos(radians))
     const sinAngle = Math.abs(Math.sin(radians))
@@ -158,7 +158,7 @@ Graphics.prototype.transform = function (width, height, degrees, bitmap) {
     return canvas
 }
 
-Graphics.prototype.debug = function (x, y, width, height, color, ctx) {
+graphics.debug = function (x, y, width, height, color, ctx) {
     ctx.lineWidth = 2
     ctx.strokeStyle = color
     ctx.strokeRect(
@@ -168,7 +168,7 @@ Graphics.prototype.debug = function (x, y, width, height, color, ctx) {
         height + 1)
 }
 
-Graphics.prototype.strokeLine = function (x1, y1, x2, y2, color, ctx) {
+graphics.strokeLine = function (x1, y1, x2, y2, color, ctx) {
     ctx.beginPath()
     ctx.moveTo(x1, y1)
     ctx.lineTo(x2, y2)
@@ -176,12 +176,12 @@ Graphics.prototype.strokeLine = function (x1, y1, x2, y2, color, ctx) {
     ctx.stroke()
 }
 
-Graphics.prototype.scaleWidth = function (width, rotation, bitmap) {
+graphics.scaleWidth = function (width, rotation, bitmap) {
     const scaleFactor = width / bitmap.width
     return this.transform(bitmap.width * scaleFactor, bitmap.height * scaleFactor, rotation, bitmap)
 }
 
-Graphics.prototype.scaleHeight = function (height, rotation, bitmap) {
+graphics.scaleHeight = function (height, rotation, bitmap) {
     const scaleFactor = height / bitmap.height
     return this.transform(bitmap.width * scaleFactor, bitmap.height * scaleFactor, rotation, bitmap)
 }

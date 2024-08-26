@@ -1,55 +1,56 @@
-const graphics = new Graphics()
-const mathUtils = new MathUtils()
-const sound = new Sound()
-
-function Game() {
-    this.steps = []
-    this.stepsCount = 113
-    this.dy = 13
-    this.size = { width: 1000, height: 1600 }
-    this.stepSize = { width: 100, height: 24 }
-    this.playerSize = { width: 100, height: 96 }
-    this.dx = this.stepSize.width
-    this.player = new Sprite(0, 0, 1, false, null)
-    this.playerStep = 100
-    this.elapsedTime = 0
-    this.countdownTime = 0
-    this.timerRunning = false
-    this.stepsInfo = new Label(96, 18, 0, false, '', 'black', 13 * 2, 'Arial')
-    this.timeInfo = new Label(852, 18, 0, false, '', 'black', 13 * 2, 'Arial')
-    this.floorLabels = []
-    this.timeLabel = new Label(500, 550, 0, false, 'Time:', 'black', 13 * 4, 'Arial')
-    this.bestLabel = new Label(500, 600, 0, false, 'Best:', 'black', 13 * 4, 'Arial')
-    this.homeButton = new Label(500, 750, 0, true, 'HOME', 'black', 13 * 7, 'Arial')
-    this.tryAgainButton = new Label(500, 850, 0, true, 'TRY AGAIN', 'black', 13 * 7, 'Arial')
-    this.playButton = new Label(500, 800, 0, true, 'PLAY', 'black', 13 * 8, 'Arial')
-    this.countdownLabel = new Label(500, 800, 0, false, '', 'black', 13 * 10, 'Arial')
-    this.scoreBackground = null
-
-    this.directionSteps = [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109]
-
-    this.showingCountdown = false
-    this.showingScore = false
-
-    this.objects = []
-    this.key = 'vemi.games.starway-to-13.best'
-    this.audiosLoaded = false
-    this.tapAudio = null
+const game = {
+    steps: [],
+    stepsCount: 113,
+    dy: 13,
+    size: { width: 1000, height: 1600 },
+    stepSize: { width: 100, height: 24 },
+    playerSize: { width: 100, height: 96 },
+    dx: 0,
+    player: new Sprite(0, 0, 1, false, null),
+    playerStep: 100,
+    elapsedTime: 0,
+    countdownTime: 0,
+    timerRunning: false,
+    stepsInfo: new Label(120, 32, 0, false, '', 'white', 'normal', 32, 'Arial'),
+    timeInfo: new Label(920, 32, 0, false, '', 'white', 'normal', 32, 'Arial'),
+    floorLabels: [],
+    timeLabel: new Label(500, 550, 0, false, 'Time:', 'white', 'normal', 48, 'Arial'),
+    bestLabel: new Label(500, 600, 0, false, 'Best:', 'white', 'normal', 48, 'Arial'),
+    homeButton: new Label(500, 750, 0, true, 'HOME', 'white', 'bold', 64, 'Arial'),
+    tryAgainButton: new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 'bold', 64, 'Arial'),
+    playButton: new Label(500, 800, 0, true, 'PLAY', 'white', 'bold', 64, 'Arial'),
+    countdownLabel: new Label(500, 800, 0, false, '', 'white', 'bold', 96, 'Arial'),
+    scoreBackground: null,
+    directionSteps: [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109],
+    showingCountdown: false,
+    showingScore: false,
+    objects: [],
+    key: 'vemi.games.starway-to-13.best',
+    audiosLoaded: false,
+    tapAudio: null,
+    debug: false,
+    leftCanvas: null,
+    rightCanvas: null,
+    frontCanvas: null
 }
 
-Game.prototype.init = async function (canvas) {
+game.init = async function (canvas) {
     this.canvas = canvas
     this.canvas.width = this.size.width
     this.canvas.height = this.size.height
 
-    this.resize();
-
     this.tapAudio = await sound.loadAudio('./snd/tap.opus')
 
     let stepCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step.png'))
-    this.player.canvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/front.png'))
-    this.scoreBackground= new Sprite(500, 680, 0.5, false, null)
+    this.leftCanvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/left.png'))
+    this.rightCanvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/right.png'))
+    this.frontCanvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/front.png'))
+
+    this.player.canvas = this.rightCanvas
+    this.scoreBackground = new Sprite(500, 680, 0.5, false, null)
     this.scoreBackground.canvas = graphics.transform(1000, 800, 0, await graphics.loadBitmap('./img/step.png'))
+
+    this.dx = this.stepSize.width
 
     let x = this.stepSize.width * 0.5
     let y = 1600 - (this.stepSize.height * 0.5)
@@ -60,21 +61,21 @@ Game.prototype.init = async function (canvas) {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(944, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'black', 13 * 4, 'Verdana'))
+            this.floorLabels.push(new Label(944, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'Arial'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', 'black', 13 * 4, 'Verdana'))
+    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'Arial'))
     this.setPlayerPosition()
 
     this.objects.push(this.playButton)
     this.previous = performance.now()
 }
 
-Game.prototype.update = function (dt) {
+game.update = function (dt) {
     if (this.showingCountdown) {
         this.countdownTime -= dt
 
@@ -101,15 +102,15 @@ Game.prototype.update = function (dt) {
     this.timeInfo.content = this.formatTime(this.elapsedTime)
 }
 
-Game.prototype.onKeyDown = function (key) {
+game.onKeyDown = function (key) {
 
 }
 
-Game.prototype.onKeyUp = function (key) {
+game.onKeyUp = function (key) {
 
 }
 
-Game.prototype.onPointerDown = function (event) {
+game.onPointerDown = function (event) {
     if (this.showingCountdown) {
         return
     }
@@ -128,7 +129,7 @@ Game.prototype.onPointerDown = function (event) {
     }
 }
 
-Game.prototype.onPointerUp = function (event) {
+game.onPointerUp = function (event) {
     const hit = graphics.hit(this.objects, event, this.ctx)
 
     if (hit != null) {
@@ -142,38 +143,41 @@ Game.prototype.onPointerUp = function (event) {
     }
 }
 
-Game.prototype.draw = function () {
-    this.ctx.fillStyle = 'white'
+game.clear = function () {
+    this.ctx.fillStyle = 'black'
     this.ctx.fillRect(0, 0, this.size.width, this.size.height)
-
-    graphics.draw(this.objects, this.ctx, false)
 }
 
-Game.prototype.resize = function () {
+game.resize = function () {
     graphics.resizeContainer(this.size, { width: window.innerWidth, height: window.innerHeight }, this.canvas)
 }
 
-Game.prototype.frame = function (dt) {
-    this.ctx = this.canvas.getContext('2d', {
-        alpha: false,
-        imageSmoothingEnabled: false
-    });
-
-    this.update(dt)
-    this.draw()
-}
-
-Game.prototype.setPlayerPosition = function () {
+game.setPlayerPosition = function () {
     this.player.x = this.steps[this.playerStep - 1].x
     this.player.y = this.steps[this.playerStep - 1].y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
+    this.stepsInfo.content = `Step ${this.formatStep()} of ${this.steps.length}`
+
+    console.log(this.isDirectionStep(this.playerStep))
+
+    if (this.isDirectionStep(this.playerStep)) {
+        if (this.player.canvas == this.leftCanvas) {
+            this.player.canvas == this.rightCanvas
+        } else {
+            this.player.canvas == this.leftCanvas
+        }
+    }
+
+    if (this.playerStep == this.stepsCount) {
+        this.player.canvas == this.frontCanvas
+    }
 }
 
-Game.prototype.formatStep = function () {
+game.formatStep = function () {
     return `Step ${String(this.playerStep).padStart(3, '0')} of ${this.stepsCount}`
 }
 
 //GPT
-Game.prototype.formatTime = function formatTime(milliseconds) {
+game.formatTime = function formatTime(milliseconds) {
     const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60))
     const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000)
     const remainingMilliseconds = Math.floor(milliseconds % 1000)
@@ -185,11 +189,11 @@ Game.prototype.formatTime = function formatTime(milliseconds) {
     return `${formattedMinutes}:${formattedSeconds}.${formattedMilliseconds}`
 }
 
-Game.prototype.isDirectionStep = function (i) {
-    return this.directionSteps.indexOf(i) != -1
+game.isDirectionStep = function (step) {
+    return this.directionSteps.indexOf(step) != -1
 }
 
-Game.prototype.updateRecord = function () {
+game.updateRecord = function () {
     let currentRecord = localStorage.getItem(this.key)
 
     if (currentRecord == null) {
@@ -201,8 +205,7 @@ Game.prototype.updateRecord = function () {
     }
 }
 
-Game.prototype.start = function () {
-    this.current = 'InGame'
+game.start = function () {
     this.elapsedTime = 0
     this.timerRunning = false
     this.showingCountdown = true
@@ -229,12 +232,12 @@ Game.prototype.start = function () {
     this.objects.push(this.countdownLabel)
 }
 
-Game.prototype.home = function () {
+game.home = function () {
     this.objects = []
     this.objects.push(this.playButton)
 }
 
-Game.prototype.end = function () {
+game.end = function () {
     this.updateRecord()
     this.timeLabel.content = `Time: ${this.formatTime(this.elapsedTime)}`
     const best = localStorage.getItem(this.key)
@@ -249,7 +252,7 @@ Game.prototype.end = function () {
     this.objects.push(this.scoreBackground)
 }
 
-Game.prototype.remove = function (o) {
+game.remove = function (o) {
     let index = this.objects.findIndex(item => item == o);
     if (index !== -1) {
         this.objects.splice(index, 1);
