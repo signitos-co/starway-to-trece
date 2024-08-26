@@ -189,3 +189,9 @@ graphics.measureLabel = function (label, ctx) {
 
     return ctx.measureText(label.content)
 }
+
+graphics.alignLeft = function (label, at, ctx) {
+    let metrics = this.measureLabel(label, ctx)
+    let textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
+    label.x = at + (textWidth * 0.5)
+}

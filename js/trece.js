@@ -97,11 +97,8 @@ game.init = async function (canvas, ctx) {
     let textY = 13 * 7
 
     for (let i = 0; i < texts.length; i++) {
-        let text = texts[i]
-        let line = new Label(0, 0, 0, false, text, 'white', i == 0 ? 'bold' : 'italic', 13 * 4, 'Arial')
-        let metrics = graphics.measureLabel(line, this.ctx)
-        let textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
-        line.x = marginX + (textWidth * 0.5)
+        let line = new Label(0, 0, 0, false,  texts[i], 'white', i == 0 ? 'bold' : 'italic', 13 * 4, 'Arial')
+        graphics.alignLeft(line, marginX, this.ctx)
         line.y = textY
         this.introTexts.push(line)
         this.objects.push(line)
