@@ -6,22 +6,21 @@ const game = {
     stepSize: { width: 100, height: 24 },
     playerSize: { width: 100, height: 96 },
     dx: 0,
-    player: new Sprite(0, 0, 1, false, null),
+    player: new Sprite(0, 0, 0.5, false, null),
     playerStep: 100,
     elapsedTime: 0,
     countdownTime: 0,
     timerRunning: false,
-    stepsInfo: new Label(220, 48, 0, false, '', '#7F0000', 'normal', 13 * 3, 'sans-serif'),
-    timeInfo: new Label(860, 48, 0, false, '', '#7F0000', 'normal', 13 * 3, 'monospace'),
+    stepsInfo: new Label(200, 48, 0, false, '', 'white', 'normal', 13 * 3, 'monospace'),
+    timeInfo: new Label(860, 48, 0, false, '', 'white', 'normal', 13 * 3, 'monospace'),
     floorLabels: [],
     timeLabel: new Label(500, 550, 0, false, 'Time:', 'white', 'normal', 13 * 4, 'sans-serif'),
     bestLabel: new Label(500, 600, 0, false, 'Best:', 'white', 'normal', 13 * 4, 'sans-serif'),
     homeButton: new Label(500, 750, 0, true, 'HOME', 'white', 'bold', 13 * 5, 'sans-serif'),
     tryAgainButton: new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 'bold', 13 * 5, 'sans-serif'),
     playButton: new Label(500, 800, 0, true, 'PLAY', 'white', 'bold', 13 * 5, 'sans-serif'),
-    countdownLabel: new Label(500, 800, 0, false, '', '#7F0000', 'bold', 13 * 10, 'sans-serif'),
+    countdownLabel: new Label(500, 800, 0, false, '', 'white', 'bold', 13 * 10, 'sans-serif'),
     scoreBackground: new Sprite(500, 680, 0.5, false, null),
-    homeBackground: new Sprite(500, 800, 0.5, false, null),
     directionSteps: [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109],
     showingCountdown: false,
     showingScore: false,
@@ -34,10 +33,7 @@ const game = {
     rightCanvas: null,
     frontCanvas: null,
     stepOnCanvas: null,
-    stepOffCanvas: null,
-    catCanvas: null,
-    introTexts: [],
-    catShown: false
+    introTexts: []
 }
 
 game.init = async function (canvas, ctx) {
@@ -52,14 +48,10 @@ game.init = async function (canvas, ctx) {
     this.rightCanvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/right.png'))
     this.frontCanvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/front.png'))
 
-    this.stepOffCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-off.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
 
     this.player.canvas = this.rightCanvas
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
-    this.homeBackground.canvas = graphics.transform(1000, 1600, 0, await graphics.loadBitmap('./img/step-on.png'))
-
-    this.catCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/cat.png'))
 
     this.dx = this.stepSize.width
 
@@ -72,14 +64,14 @@ game.init = async function (canvas, ctx) {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(944, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), '#7F0000', 'normal', 32, 'sans-serif'))
+            this.floorLabels.push(new Label(944, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'sans-serif'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', '#7F0000', 'normal', 32, 'sans-serif'))
+    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'sans-serif'))
     this.objects.push(this.playButton)
 
     const texts = [
@@ -108,8 +100,6 @@ game.init = async function (canvas, ctx) {
         this.objects.push(line)
         textY += 13 * 4
     }
-
-    this.objects.push(this.homeBackground)
 
     this.previous = performance.now()
 }
@@ -161,15 +151,9 @@ game.onPointerDown = function (event) {
         }
 
         this.setPlayerPosition()
-        if (this.playerStep == 1) {
-            this.timerRunning = false
-            this.end()
-        }
 
-        if (!this.catShown && random.nextDouble(0, 1) < 0.1) {
-            let previous = this.steps[this.playerStep - 2]
-            this.objects.push(new Sprite(previous.x, previous.y - (this.stepSize.height * 0.5) - (this.catCanvas.height * 0.5), 1, false, this.catCanvas))
-            this.catShown = true
+        if (this.playerStep == 1) {
+            this.end()
         }
     }
 }
@@ -189,7 +173,7 @@ game.onPointerUp = function (event) {
 }
 
 game.clear = function () {
-    this.ctx.fillStyle = 'darkgrey'
+    this.ctx.fillStyle = 'black'
     this.ctx.fillRect(0, 0, this.size.width, this.size.height)
 }
 
@@ -214,8 +198,6 @@ game.setPlayerPosition = function () {
     if (this.playerStep == 1) {
         this.player.canvas = this.frontCanvas
     }
-
-    step.canvas = this.stepOnCanvas
 }
 
 game.formatStep = function () {
@@ -260,10 +242,9 @@ game.start = function () {
     this.playerStep = this.stepsCount
     this.player.canvas = this.leftCanvas
     this.objects = []
-    this.catShown = false
 
     for (let step of this.steps) {
-        step.canvas = this.stepOffCanvas
+        step.canvas = this.stepOnCanvas
         this.objects.push(step)
     }
 
@@ -289,17 +270,16 @@ game.home = function () {
     for (let text of this.introTexts) {
         this.objects.push(text)
     }
-
-    this.objects.push(this.homeBackground)
 }
 
 game.end = function () {
+    this.timerRunning = false
+    this.showingScore = true
+
     this.updateRecord()
     this.timeLabel.content = `Time: ${this.formatTime(this.elapsedTime)}`
     const best = localStorage.getItem(this.key)
     this.bestLabel.content = `Best: ${this.formatTime(best)}`
-    this.showingScore = true
-    this.timerRunning = false
 
     this.objects.push(this.timeLabel)
     this.objects.push(this.bestLabel)
@@ -314,3 +294,4 @@ game.remove = function (o) {
         this.objects.splice(index, 1);
     }
 }
+
