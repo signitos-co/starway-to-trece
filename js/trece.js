@@ -25,7 +25,7 @@ const game = {
     showingCountdown: false,
     showingScore: false,
     objects: [],
-    key: 'vemi.games.starway-to-13.best',
+    key: 'vemi.games.escape-from-trece.best',
     audiosLoaded: false,
     tapAudio: null,
     debug: false,
