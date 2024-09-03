@@ -1,6 +1,6 @@
 const game = {
     steps: [],
-    stepsCount: 113,
+    stepsCount: 109,
     dy: 13,
     size: { width: 1000, height: 1600 },
     stepSize: { width: 100, height: 24 },
@@ -53,7 +53,7 @@ game.init = async function (canvas, ctx) {
     this.player.canvas = this.rightCanvas
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
 
-    this.dx = this.stepSize.width
+    this.dx = this.stepSize.width * 0.8
 
     let x = this.stepSize.width * 0.5
     let y = 1600 - (this.stepSize.height * 0.5)
@@ -64,14 +64,14 @@ game.init = async function (canvas, ctx) {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(944, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'sans-serif'))
+            this.floorLabels.push(new Label(20, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'sans-serif'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(944, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'sans-serif'))
+    this.floorLabels.push(new Label(20, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'sans-serif'))
     this.objects.push(this.playButton)
 
     const texts = [
