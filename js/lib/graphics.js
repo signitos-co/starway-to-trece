@@ -144,7 +144,7 @@ graphics.transform = function (width, height, degrees, bitmap) {
 
     const canvas = new OffscreenCanvas(Math.round(targetWidth), Math.round(targetHeight))
 
-    const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: false })
+    const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: true, imageSmoothingEnabled: false })
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.translate(canvas.width / 2, canvas.height / 2)
     ctx.rotate(radians)

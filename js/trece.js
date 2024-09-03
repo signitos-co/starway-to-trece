@@ -29,11 +29,16 @@ const game = {
     audiosLoaded: false,
     tapAudio: null,
     debug: false,
-    leftCanvas: null,
-    rightCanvas: null,
-    frontCanvas: null,
     stepOnCanvas: null,
-    introTexts: []
+    introTexts: [],
+    upButton: new Sprite(900, 1360, 0.5, true, null),
+    downButton: new Sprite(900, 1480, 0.5, true, null),
+    heart1: new Sprite(940, 100, 0.5, true, null),
+    heart2: new Sprite(940, 150, 0.5, true, null),
+    heart3: new Sprite(940, 200, 0.5, true, null),
+    lives: 3,
+    ghosts: [],
+    ghostCanvas: null
 }
 
 game.init = async function (canvas, ctx) {
@@ -44,14 +49,15 @@ game.init = async function (canvas, ctx) {
 
     this.tapAudio = await sound.loadAudio('./snd/tap.opus')
 
-    this.leftCanvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/left.png'))
-    this.rightCanvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/right.png'))
-    this.frontCanvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/front.png'))
-
+    this.upButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/up.png'))
+    this.downButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/down.png'))
+    this.player.canvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/front.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
-
-    this.player.canvas = this.rightCanvas
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
+    this.heart1.canvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/heart.png'))
+    this.heart2.canvas = this.heart1.canvas
+    this.heart3.canvas = this.heart1.canvas
+    this.ghostCanvas = graphics.transform(48, 48, 0, await graphics.loadBitmap('./img/ghost.png'))
 
     this.dx = this.stepSize.width * 0.8
 
@@ -126,6 +132,14 @@ game.update = function (dt) {
 
     if (this.timerRunning) {
         this.elapsedTime += dt
+
+        for (let ghost of this.ghosts) {
+            ghost.y += random.nextDouble(0.2, 0.4) * dt
+
+            if (ghost.y > 1700) {
+                ghost.y = -100
+            }
+        }
     }
 
     this.timeInfo.content = this.formatTime(this.elapsedTime)
@@ -140,14 +154,19 @@ game.onKeyUp = function (key) {
 }
 
 game.onPointerDown = function (event) {
-    if (this.showingCountdown) {
-        return
-    }
-
     if (this.timerRunning) {
-        if (this.playerStep - 1 >= 0) {
-            sound.playAudio(this.tapAudio)
-            this.playerStep--
+        const hit = graphics.hit(this.objects, event, this.ctx)
+
+        if (hit == this.downButton) {
+            if (this.playerStep - 1 >= 0) {
+                sound.playAudio(this.tapAudio)
+                this.playerStep--
+            }
+        } else if (hit == this.upButton) {
+            if (this.playerStep + 1 <= this.stepsCount) {
+                sound.playAudio(this.tapAudio)
+                this.playerStep++
+            }
         }
 
         this.setPlayerPosition()
@@ -186,18 +205,6 @@ game.setPlayerPosition = function () {
     this.player.x = step.x
     this.player.y = step.y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
     this.stepsInfo.content = this.formatStep()
-
-    if (this.isDirectionStep(this.playerStep)) {
-        if (this.player.canvas == this.leftCanvas) {
-            this.player.canvas = this.rightCanvas
-        } else if (this.player.canvas == this.rightCanvas) {
-            this.player.canvas = this.leftCanvas
-        }
-    }
-
-    if (this.playerStep == 1) {
-        this.player.canvas = this.frontCanvas
-    }
 }
 
 game.formatStep = function () {
@@ -240,7 +247,6 @@ game.start = function () {
     this.showingScore = false
     this.countdownTime = 3000
     this.playerStep = this.stepsCount
-    this.player.canvas = this.leftCanvas
     this.objects = []
 
     for (let step of this.steps) {
@@ -261,6 +267,18 @@ game.start = function () {
 
     this.objects.push(this.player)
     this.objects.push(this.countdownLabel)
+    this.objects.push(this.upButton)
+    this.objects.push(this.downButton)
+    this.objects.push(this.heart1)
+    this.objects.push(this.heart2)
+    this.objects.push(this.heart3)
+
+    for (let i = 0; i < 10; i++) {
+        console.log(this.steps[i].x)
+        let ghost = new Sprite(this.steps[i].x, -100, 0.25, false, this.ghostCanvas)
+        this.ghosts.push(ghost)
+        this.objects.push(ghost)
+    }
 }
 
 game.home = function () {
@@ -286,6 +304,8 @@ game.end = function () {
     this.objects.push(this.tryAgainButton)
     this.objects.push(this.homeButton)
     this.objects.push(this.scoreBackground)
+    this.remove(this.upButton)
+    this.remove(this.downButton)
 }
 
 game.remove = function (o) {
