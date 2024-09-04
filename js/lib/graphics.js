@@ -46,7 +46,7 @@ graphics.drawSprite = function (sprite, ctx, debug) {
 
 graphics.drawLabel = function (label, ctx, debug) {
     ctx.save()
-    ctx.textBaseline = 'actualBoundingBoxAscent'
+    ctx.textBaseline = 'middle'
     ctx.textAlign = 'center'
 
     let x = label.x
@@ -60,7 +60,7 @@ graphics.drawLabel = function (label, ctx, debug) {
         const metrics = this.measureLabel(label, ctx)
         const textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
         const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-        this.debug(x, y - textHeight / 2, textWidth, textHeight, label.color, ctx)
+        this.debug(x, y, textWidth, textHeight, label.color, ctx)
     }
 }
 
@@ -89,21 +89,12 @@ graphics.insideSprite = function (sprite, event) {
     let pointX = (event.clientX - rect.left) / this.scaleFactor
     let pointY = (event.clientY - rect.top) / this.scaleFactor
 
-    let x = sprite.x - (sprite.canvas.width / 2)
-    let y = sprite.y - (sprite.canvas.height / 2)
+    const halfWidth = sprite.canvas.width / 2
+    const halfHeight = sprite.canvas.height / 2
 
-    const localX = Math.round(pointX - x)
-    const localY = Math.round(pointY - y)
-
-    let hit = false
-
-    if (localX >= 0 && localY >= 0) {
-        const alpha = sprite.canvas.getContext('2d').getImageData(localX, localY, 1, 1).data[3]
-
-        hit = alpha > 0
-    }
-
-    return hit
+    return pointX >= (sprite.x - halfWidth) && pointX <= (sprite.x + halfWidth)
+        &&
+        pointY >= (sprite.y - halfHeight) && pointY <= (sprite.y + halfHeight)
 }
 
 graphics.insideLabel = function (label, event, ctx) {
@@ -116,13 +107,11 @@ graphics.insideLabel = function (label, event, ctx) {
     const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
 
     const halfWidth = textWidth / 2
+    const halfHeight = textHeight / 2
 
-    const startX = label.x - halfWidth
-    const endX = label.x + halfWidth
-    const startY = label.y - textHeight
-    const endY = startY + textHeight
-
-    return pointX >= startX && pointX <= endX && pointY >= startY && pointY <= endY
+    return pointX >= label.x - halfWidth && pointX <= label.x + halfWidth
+        &&
+        pointY >= label.y - halfHeight && pointY <= label.y + halfHeight
 }
 
 graphics.loadBitmap = async function (path) {

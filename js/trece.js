@@ -28,7 +28,7 @@ const game = {
     key: 'vemi.games.escape-from-trece.best',
     audiosLoaded: false,
     tapAudio: null,
-    debug: false,
+    debug: true,
     stepOnCanvas: null,
     introTexts: [],
     upButton: new Sprite(900, 1360, 0.5, true, null),
@@ -37,8 +37,8 @@ const game = {
     heart2: new Sprite(940, 150, 0.5, true, null),
     heart3: new Sprite(940, 200, 0.5, true, null),
     lives: 3,
-    ghosts: [],
-    ghostCanvas: null
+    enemies: [],
+    enemyCanvas: null
 }
 
 game.init = async function (canvas, ctx) {
@@ -57,7 +57,7 @@ game.init = async function (canvas, ctx) {
     this.heart1.canvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/heart.png'))
     this.heart2.canvas = this.heart1.canvas
     this.heart3.canvas = this.heart1.canvas
-    this.ghostCanvas = graphics.transform(48, 48, 0, await graphics.loadBitmap('./img/ghost.png'))
+    this.enemyCanvas = graphics.transform(48, 48, 0, await graphics.loadBitmap('./img/enemy.png'))
 
     this.dx = this.stepSize.width * 0.8
 
@@ -133,11 +133,11 @@ game.update = function (dt) {
     if (this.timerRunning) {
         this.elapsedTime += dt
 
-        for (let ghost of this.ghosts) {
-            ghost.y += random.nextDouble(0.2, 0.4) * dt
+        for (let enemy of this.enemies) {
+            enemy.y += random.nextDouble(0.2, 0.4) * dt
 
-            if (ghost.y > 1700) {
-                ghost.y = -100
+            if (enemy.y > 1700) {
+                enemy.y = -100
             }
         }
     }
@@ -275,9 +275,9 @@ game.start = function () {
 
     for (let i = 0; i < 10; i++) {
         console.log(this.steps[i].x)
-        let ghost = new Sprite(this.steps[i].x, -100, 0.25, false, this.ghostCanvas)
-        this.ghosts.push(ghost)
-        this.objects.push(ghost)
+        let enemy = new Sprite(this.steps[i].x, -100, 0.25, false, this.enemyCanvas)
+        this.enemies.push(enemy)
+        this.objects.push(enemy)
     }
 }
 
