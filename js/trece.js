@@ -8,26 +8,21 @@ const game = {
     dx: 0,
     player: new Sprite(0, 0, 0.5, false, null),
     playerStep: 100,
-    elapsedTime: 0,
     countdownTime: 0,
-    timerRunning: false,
+    inGame: false,
     stepsInfo: new Label(200, 48, 0, false, '', 'white', 'normal', 13 * 3, 'monospace'),
-    timeInfo: new Label(860, 48, 0, false, '', 'white', 'normal', 13 * 3, 'monospace'),
     floorLabels: [],
-    timeLabel: new Label(500, 550, 0, false, 'Time:', 'white', 'normal', 13 * 4, 'sans-serif'),
-    bestLabel: new Label(500, 600, 0, false, 'Best:', 'white', 'normal', 13 * 4, 'sans-serif'),
-    gameOverLabel: new Label(500, 450, 0, false, 'GAME OVER', 'white', 'normal', 13 * 5, 'sans-serif'),
-    winLabel: new Label(500, 450, 0, false, 'YOU WIN', 'white', 'normal', 13 * 5, 'sans-serif'),
-    homeButton: new Label(500, 750, 0, true, 'HOME', 'white', 'bold', 13 * 5, 'sans-serif'),
-    tryAgainButton: new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 'bold', 13 * 5, 'sans-serif'),
-    playButton: new Label(500, 800, 0, true, 'PLAY', 'white', 'bold', 13 * 5, 'sans-serif'),
-    countdownLabel: new Label(500, 800, 0, false, '', 'white', 'bold', 13 * 10, 'sans-serif'),
+    gameOverLabel: new Label(500, 450, 0, false, 'GAME OVER', 'white', 'bold', 13 * 5, 'sans-serif'),
+    winLabel: new Label(500, 450, 0, false, 'YOU WIN', 'white', 'bold', 13 * 5, 'sans-serif'),
+    homeButton: new Label(500, 750, 0, true, 'HOME', 'white', 'normal', 13 * 5, 'sans-serif'),
+    tryAgainButton: new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 'normal', 13 * 5, 'sans-serif'),
+    playButton: new Label(500, 800, 0, true, 'PLAY', 'white', 'normal', 13 * 5, 'sans-serif'),
+    countdownLabel: new Label(500, 800, 0, false, '', 'white', 'normal', 13 * 11, 'sans-serif'),
     scoreBackground: new Sprite(500, 680, 0.4, false, null),
     directionSteps: [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109],
     showingCountdown: false,
     showingScore: false,
     objects: [],
-    key: 'vemi.games.escape-from-trece.best',
     audiosLoaded: false,
     tapAudio: null,
     debug: true,
@@ -39,7 +34,7 @@ const game = {
     totalLives: 5,
     enemies: [],
     enemyCanvas: null,
-    heartCanvas: null,
+    liveCanvas: null,
     upPressed: false,
     downPressed: false
 }
@@ -57,7 +52,7 @@ game.init = async function (canvas, ctx) {
     this.player.canvas = graphics.transform(12 * 3, 32 * 3, 0, await graphics.loadBitmap('./img/front.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
-    this.heartCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/heart.png'))
+    this.liveCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/live.png'))
     this.enemyCanvas = graphics.transform(48, 48, 0, await graphics.loadBitmap('./img/enemy.png'))
 
     this.dx = this.stepSize.width * 0.8
@@ -89,9 +84,9 @@ game.init = async function (canvas, ctx) {
         'Run!',
         '',
         'Get to the ground floor',
-        'as fast as you can!',
+        'as fast as you can.',
         '',
-        'but be careful with the ...'
+        'But be careful with the ...'
     ]
 
     const marginX = 13 * 7
@@ -128,14 +123,12 @@ game.update = function (dt) {
         if (this.countdownTime <= 0) {
             this.showingCountdown = false
             this.elapsedTime = 0
-            this.timerRunning = true
+            this.inGame = true
             this.remove(this.objects, this.countdownLabel)
         }
     }
 
-    if (this.timerRunning) {
-        this.elapsedTime += dt
-
+    if (this.inGame) {
         for (let enemy of this.enemies) {
             enemy.y += enemy.velocity * dt
 
@@ -155,12 +148,10 @@ game.update = function (dt) {
             this.end()
         }
     }
-
-    this.timeInfo.content = this.formatTime(this.elapsedTime)
 }
 
 game.onKeyDown = function (key) {
-    if (this.timerRunning) {
+    if (this.inGame) {
 
         if (key == 'arrowdown' && !this.downPressed) {
             this.goDown()
@@ -237,38 +228,12 @@ game.formatStep = function () {
     return `Step ${String(this.playerStep).padStart(3, '0')} of ${this.stepsCount}`
 }
 
-//GPT
-game.formatTime = function formatTime(milliseconds) {
-    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000)
-    const remainingMilliseconds = Math.floor(milliseconds % 1000)
-
-    const formattedMinutes = String(minutes).padStart(2, '0')
-    const formattedSeconds = String(seconds).padStart(2, '0')
-    const formattedMilliseconds = String(remainingMilliseconds).padStart(3, '0')
-
-    return `${formattedMinutes}:${formattedSeconds}.${formattedMilliseconds}`
-}
-
 game.isDirectionStep = function (step) {
     return this.directionSteps.indexOf(step) != -1
 }
 
-game.updateRecord = function () {
-    let currentRecord = localStorage.getItem(this.key)
-
-    if (currentRecord == null) {
-        localStorage.setItem(this.key, this.elapsedTime)
-    } else {
-        if (this.elapsedTime < Number(localStorage.getItem(this.key))) {
-            localStorage.setItem(this.key, Math.trunc(this.elapsedTime))
-        }
-    }
-}
-
 game.start = function () {
-    this.elapsedTime = 0
-    this.timerRunning = false
+    this.inGame = false
     this.showingCountdown = true
     this.showingScore = false
     this.countdownTime = 3000
@@ -287,7 +252,6 @@ game.start = function () {
     this.stepsInfo.content = this.formatStep()
 
     this.objects.push(this.stepsInfo)
-    this.objects.push(this.timeInfo)
 
     for (let floor of this.floorLabels) {
         this.objects.push(floor)
@@ -295,9 +259,9 @@ game.start = function () {
 
     let y = 100
     for (let i = 0; i < this.totalLives; i++) {
-        let heart = new Sprite(940, y, 0.5, true, this.heartCanvas)
-        this.lives.push(heart)
-        this.objects.push(heart)
+        let live = new Sprite(940, y, 0.5, true, this.liveCanvas)
+        this.lives.push(live)
+        this.objects.push(live)
         y += 13 * 4
     }
 
@@ -326,13 +290,8 @@ game.home = function () {
 }
 
 game.end = function () {
-    this.timerRunning = false
+    this.inGame = false
     this.showingScore = true
-
-    this.updateRecord()
-    this.timeLabel.content = `Time: ${this.formatTime(this.elapsedTime)}`
-    const best = localStorage.getItem(this.key)
-    this.bestLabel.content = `Best: ${this.formatTime(best)}`
 
     this.objects.push(this.timeLabel)
     this.objects.push(this.bestLabel)
@@ -346,7 +305,7 @@ game.end = function () {
         this.remove(this.objects, enemy)
     }
 
-    if(this.lives.length == 0){
+    if (this.lives.length == 0) {
         this.objects.push(this.gameOverLabel)
     } else {
         this.objects.push(this.winLabel)
