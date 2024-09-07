@@ -16,6 +16,8 @@ const game = {
     floorLabels: [],
     timeLabel: new Label(500, 550, 0, false, 'Time:', 'white', 'normal', 13 * 4, 'sans-serif'),
     bestLabel: new Label(500, 600, 0, false, 'Best:', 'white', 'normal', 13 * 4, 'sans-serif'),
+    gameOverLabel: new Label(500, 450, 0, false, 'GAME OVER', 'white', 'normal', 13 * 5, 'sans-serif'),
+    winLabel: new Label(500, 450, 0, false, 'YOU WIN', 'white', 'normal', 13 * 5, 'sans-serif'),
     homeButton: new Label(500, 750, 0, true, 'HOME', 'white', 'bold', 13 * 5, 'sans-serif'),
     tryAgainButton: new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 'bold', 13 * 5, 'sans-serif'),
     playButton: new Label(500, 800, 0, true, 'PLAY', 'white', 'bold', 13 * 5, 'sans-serif'),
@@ -87,7 +89,9 @@ game.init = async function (canvas, ctx) {
         'Run!',
         '',
         'Get to the ground floor',
-        'by tapping as fast as you can!'
+        'as fast as you can!',
+        '',
+        'but be careful with the ...'
     ]
 
     const marginX = 13 * 7
@@ -340,6 +344,12 @@ game.end = function () {
 
     for (let enemy of this.enemies) {
         this.remove(this.objects, enemy)
+    }
+
+    if(this.lives.length == 0){
+        this.objects.push(this.gameOverLabel)
+    } else {
+        this.objects.push(this.winLabel)
     }
 }
 
