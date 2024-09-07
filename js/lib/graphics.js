@@ -40,7 +40,7 @@ graphics.drawSprite = function (sprite, ctx, debug) {
     ctx.drawImage(sprite.canvas, Math.floor(x), Math.floor(y))
 
     if (debug) {
-        this.debug(sprite.x, sprite.y, sprite.canvas.width, sprite.canvas.height, 'yellow', ctx)
+        this.debug(sprite.x, sprite.y, sprite.canvas.width, sprite.canvas.height, ctx)
     }
 }
 
@@ -60,7 +60,7 @@ graphics.drawLabel = function (label, ctx, debug) {
         const metrics = this.measureLabel(label, ctx)
         const textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
         const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-        this.debug(x, y, textWidth, textHeight, label.color, ctx)
+        this.debug(x, y, textWidth, textHeight, ctx)
     }
 }
 
@@ -143,9 +143,9 @@ graphics.transform = function (width, height, degrees, bitmap) {
     return canvas
 }
 
-graphics.debug = function (x, y, width, height, color, ctx) {
-    ctx.lineWidth = 2
-    ctx.strokeStyle = color
+graphics.debug = function (x, y, width, height, ctx) {
+    ctx.lineWidth = 1
+    ctx.strokeStyle = 'yellow'
     ctx.strokeRect(
         x - (width / 2) - 1,
         y - (height / 2) - 1,
@@ -183,4 +183,33 @@ graphics.alignLeft = function (label, at, ctx) {
     let metrics = this.measureLabel(label, ctx)
     let textWidth = metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft
     label.x = at + (textWidth * 0.5)
+}
+
+//chatgpt generated
+graphics.collision = function (sprite1, sprite2) {
+    const width1 = sprite1.canvas.width;
+    const height1 = sprite1.canvas.height;
+    const width2 = sprite2.canvas.width;
+    const height2 = sprite2.canvas.height;
+
+    const box1 = {
+        left: sprite1.x - width1 / 2,
+        right: sprite1.x + width1 / 2,
+        top: sprite1.y - height1 / 2,
+        bottom: sprite1.y + height1 / 2
+    };
+
+    const box2 = {
+        left: sprite2.x - width2 / 2,
+        right: sprite2.x + width2 / 2,
+        top: sprite2.y - height2 / 2,
+        bottom: sprite2.y + height2 / 2
+    };
+
+    return !(
+        box1.right < box2.left ||
+        box1.left > box2.right ||
+        box1.bottom < box2.top ||
+        box1.top > box2.bottom
+    );
 }
