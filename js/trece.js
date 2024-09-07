@@ -10,28 +10,29 @@ const game = {
     playerStep: 100,
     countdownTime: 0,
     inGame: false,
-    stepsInfo: new Label(200, 48, 0, false, '', 'white', 'normal', 13 * 3, 'monospace'),
     floorLabels: [],
-    gameOverLabel: new Label(500, 450, 0, false, 'GAME OVER', 'white', 'bold', 13 * 5, 'sans-serif'),
-    winLabel: new Label(500, 450, 0, false, 'YOU WIN', 'white', 'bold', 13 * 5, 'sans-serif'),
-    homeButton: new Label(500, 750, 0, true, 'HOME', 'white', 'normal', 13 * 5, 'sans-serif'),
-    tryAgainButton: new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 'normal', 13 * 5, 'sans-serif'),
-    playButton: new Label(500, 800, 0, true, 'PLAY', 'white', 'normal', 13 * 5, 'sans-serif'),
-    countdownLabel: new Label(500, 800, 0, false, '', 'white', 'normal', 13 * 11, 'sans-serif'),
-    scoreBackground: new Sprite(500, 680, 0.4, false, null),
+    gameOverLabel: new Label(500, 560, 0, false, 'GAME OVER', 'white', 'bold', 60, 'sans-serif'),
+    winLabel: new Label(500, 560, 0, false, 'YOU WIN', 'white', 'bold', 60, 'sans-serif'),
+    homeButton: new Label(500, 850, 0, true, 'HOME', 'white', 'normal', 60, 'sans-serif'),
+    tryAgainButton: new Label(500, 950, 0, true, 'TRY AGAIN', 'white', 'normal', 60, 'sans-serif'),
+    playButton: new Label(500, 1300, 0, true, 'PLAY', 'white', 'normal', 60, 'sans-serif'),
+    countdownLabel: new Label(500, 800, 0, false, '', 'white', 'normal', 130, 'sans-serif'),
+    scoreBackground: new Sprite(500, 800, 0.4, false, null),
+    introBackground: new Sprite(500, 800, 0.4, false, null),
     directionSteps: [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109],
     showingCountdown: false,
     showingScore: false,
     objects: [],
     audiosLoaded: false,
     tapAudio: null,
+    hitAudio: null,
     debug: true,
     stepOnCanvas: null,
     introTexts: [],
-    upButton: new Sprite(900, 1360, 0.5, true, null),
-    downButton: new Sprite(900, 1480, 0.5, true, null),
+    upButton: new Sprite(930, 1410, 0.5, true, null),
+    downButton: new Sprite(930, 1530, 0.5, true, null),
     lives: [],
-    totalLives: 5,
+    totalLives: 4,
     enemies: [],
     enemyCanvas: null,
     liveCanvas: null,
@@ -46,14 +47,16 @@ game.init = async function (canvas, ctx) {
     this.ctx = ctx
 
     this.tapAudio = await sound.loadAudio('./snd/tap.opus')
+    this.hitAudio = await sound.loadAudio('./snd/hit.opus')
 
-    this.upButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/up.png'))
-    this.downButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/down.png'))
+    this.upButton.canvas = graphics.transform(80, 80, 0, await graphics.loadBitmap('./img/up.png'))
+    this.downButton.canvas = graphics.transform(80, 80, 0, await graphics.loadBitmap('./img/down.png'))
     this.player.canvas = graphics.transform(12 * 3, 32 * 3, 0, await graphics.loadBitmap('./img/front.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
+    this.introBackground.canvas = graphics.transform(800, 1200, 0, await graphics.loadBitmap('./img/step-on.png'))
     this.liveCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/live.png'))
-    this.enemyCanvas = graphics.transform(48, 48, 0, await graphics.loadBitmap('./img/enemy.png'))
+    this.enemyCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/enemy.png'))
 
     this.dx = this.stepSize.width * 0.8
 
@@ -66,14 +69,14 @@ game.init = async function (canvas, ctx) {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(20, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'sans-serif'))
+            this.floorLabels.push(new Label(840, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'sans-serif'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(20, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'sans-serif'))
+    this.floorLabels.push(new Label(840, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'sans-serif'))
     this.objects.push(this.playButton)
 
     const texts = [
@@ -89,21 +92,23 @@ game.init = async function (canvas, ctx) {
         'But be careful with the ...'
     ]
 
-    const marginX = 13 * 7
-    let textY = 13 * 15
+    const marginX = 130
+    let textY = 400
 
-    let line = new Label(500, 13 * 7, 0, false, 'ESCAPE FROM TRECE', 'white', 'bold', 13 * 5, 'sans-serif')
+    let line = new Label(500, 250, 0, false, 'ESCAPE FROM TRECE', 'white', 'bold', 60, 'sans-serif')
     this.objects.push(line)
     this.introTexts.push(line)
 
     for (let i = 0; i < texts.length; i++) {
-        line = new Label(0, 0, 0, false, texts[i], 'white', 'italic', 13 * 4, 'sans-serif')
+        line = new Label(0, 0, 0, false, texts[i], 'white', 'italic', 48, 'sans-serif')
         graphics.alignLeft(line, marginX, this.ctx)
         line.y = textY
         this.introTexts.push(line)
         this.objects.push(line)
-        textY += 13 * 4
+        textY += 48
     }
+
+    this.objects.push(this.introBackground)
 
     this.previous = performance.now()
 }
@@ -138,6 +143,7 @@ game.update = function (dt) {
             }
 
             if (enemy.isActive && graphics.collision(this.player, enemy)) {
+                sound.playAudio(this.hitAudio)
                 let last = this.lives.pop()
                 this.remove(this.objects, last)
                 enemy.isActive = false
@@ -221,11 +227,6 @@ game.setPlayerPosition = function () {
     const step = this.steps[this.playerStep - 1]
     this.player.x = step.x
     this.player.y = step.y - (this.stepSize.height * 0.5) - (this.playerSize.height * 0.5)
-    this.stepsInfo.content = this.formatStep()
-}
-
-game.formatStep = function () {
-    return `Step ${String(this.playerStep).padStart(3, '0')} of ${this.stepsCount}`
 }
 
 game.isDirectionStep = function (step) {
@@ -249,20 +250,16 @@ game.start = function () {
 
     this.setPlayerPosition()
 
-    this.stepsInfo.content = this.formatStep()
-
-    this.objects.push(this.stepsInfo)
-
     for (let floor of this.floorLabels) {
         this.objects.push(floor)
     }
 
     let y = 100
     for (let i = 0; i < this.totalLives; i++) {
-        let live = new Sprite(940, y, 0.5, true, this.liveCanvas)
+        let live = new Sprite(920, y, 0.5, true, this.liveCanvas)
         this.lives.push(live)
         this.objects.push(live)
-        y += 13 * 4
+        y += 48
     }
 
     this.objects.push(this.player)
@@ -283,6 +280,7 @@ game.start = function () {
 game.home = function () {
     this.objects = []
     this.objects.push(this.playButton)
+    this.objects.push(this.introBackground)
 
     for (let text of this.introTexts) {
         this.objects.push(text)
@@ -293,8 +291,6 @@ game.end = function () {
     this.inGame = false
     this.showingScore = true
 
-    this.objects.push(this.timeLabel)
-    this.objects.push(this.bestLabel)
     this.objects.push(this.tryAgainButton)
     this.objects.push(this.homeButton)
     this.objects.push(this.scoreBackground)
