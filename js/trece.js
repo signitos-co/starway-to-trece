@@ -20,7 +20,7 @@ const game = {
     tryAgainButton: new Label(500, 850, 0, true, 'TRY AGAIN', 'white', 'bold', 13 * 5, 'sans-serif'),
     playButton: new Label(500, 800, 0, true, 'PLAY', 'white', 'bold', 13 * 5, 'sans-serif'),
     countdownLabel: new Label(500, 800, 0, false, '', 'white', 'bold', 13 * 10, 'sans-serif'),
-    scoreBackground: new Sprite(500, 680, 0.5, false, null),
+    scoreBackground: new Sprite(500, 680, 0.4, false, null),
     directionSteps: [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109],
     showingCountdown: false,
     showingScore: false,
@@ -33,12 +33,13 @@ const game = {
     introTexts: [],
     upButton: new Sprite(900, 1360, 0.5, true, null),
     downButton: new Sprite(900, 1480, 0.5, true, null),
-    heart1: new Sprite(940, 100, 0.5, true, null),
-    heart2: new Sprite(940, 150, 0.5, true, null),
-    heart3: new Sprite(940, 200, 0.5, true, null),
-    lives: 3,
+    lives: [],
+    totalLives: 5,
     enemies: [],
-    enemyCanvas: null
+    enemyCanvas: null,
+    heartCanvas: null,
+    upPressed: false,
+    downPressed: false
 }
 
 game.init = async function (canvas, ctx) {
@@ -51,12 +52,10 @@ game.init = async function (canvas, ctx) {
 
     this.upButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/up.png'))
     this.downButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/down.png'))
-    this.player.canvas = graphics.transform(this.playerSize.width, this.playerSize.height, 0, await graphics.loadBitmap('./img/front.png'))
+    this.player.canvas = graphics.transform(12 * 3, 32 * 3, 0, await graphics.loadBitmap('./img/front.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
-    this.heart1.canvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/heart.png'))
-    this.heart2.canvas = this.heart1.canvas
-    this.heart3.canvas = this.heart1.canvas
+    this.heartCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/heart.png'))
     this.enemyCanvas = graphics.transform(48, 48, 0, await graphics.loadBitmap('./img/enemy.png'))
 
     this.dx = this.stepSize.width * 0.8
@@ -126,7 +125,7 @@ game.update = function (dt) {
             this.showingCountdown = false
             this.elapsedTime = 0
             this.timerRunning = true
-            this.remove(this.countdownLabel)
+            this.remove(this.objects, this.countdownLabel)
         }
     }
 
@@ -134,11 +133,22 @@ game.update = function (dt) {
         this.elapsedTime += dt
 
         for (let enemy of this.enemies) {
-            enemy.y += random.nextDouble(0.2, 0.4) * dt
+            enemy.y += enemy.velocity * dt
 
             if (enemy.y > 1700) {
                 enemy.y = -100
+                this.initEnemy(enemy)
             }
+
+            if (enemy.isActive && graphics.collision(this.player, enemy)) {
+                let last = this.lives.pop()
+                this.remove(this.objects, last)
+                enemy.isActive = false
+            }
+        }
+
+        if (this.lives.length == 0) {
+            this.end()
         }
     }
 
@@ -146,34 +156,46 @@ game.update = function (dt) {
 }
 
 game.onKeyDown = function (key) {
-
-}
-
-game.onKeyUp = function (key) {
-
-}
-
-game.onPointerDown = function (event) {
     if (this.timerRunning) {
-        const hit = graphics.hit(this.objects, event, this.ctx)
 
-        if (hit == this.downButton) {
-            if (this.playerStep - 1 >= 0) {
-                sound.playAudio(this.tapAudio)
-                this.playerStep--
-            }
-        } else if (hit == this.upButton) {
-            if (this.playerStep + 1 <= this.stepsCount) {
-                sound.playAudio(this.tapAudio)
-                this.playerStep++
-            }
+        if (key == 'arrowdown' && !this.downPressed) {
+            this.goDown()
+            this.downPressed = true
+        } else if (key == 'arrowup' && !this.upPressed) {
+            this.goUp()
+            this.upPressed = true
         }
 
         this.setPlayerPosition()
 
+
         if (this.playerStep == 1) {
             this.end()
         }
+    }
+}
+
+game.onKeyUp = function (key) {
+    if (key == 'arrowdown') {
+        this.downPressed = false
+    } else if (key == 'arrowup') {
+        this.upPressed = false
+    }
+}
+
+game.onPointerDown = function (event) {
+    const hit = graphics.hit(this.objects, event, this.ctx)
+
+    if (hit == this.downButton) {
+        this.goDown()
+    } else if (hit == this.upButton) {
+        this.goUp()
+    }
+
+    this.setPlayerPosition()
+
+    if (this.playerStep == 1) {
+        this.end()
     }
 }
 
@@ -248,6 +270,8 @@ game.start = function () {
     this.countdownTime = 3000
     this.playerStep = this.stepsCount
     this.objects = []
+    this.lives = []
+    this.enemies = []
 
     for (let step of this.steps) {
         step.canvas = this.stepOnCanvas
@@ -265,19 +289,26 @@ game.start = function () {
         this.objects.push(floor)
     }
 
+    let y = 100
+    for (let i = 0; i < this.totalLives; i++) {
+        let heart = new Sprite(940, y, 0.5, true, this.heartCanvas)
+        this.lives.push(heart)
+        this.objects.push(heart)
+        y += 13 * 4
+    }
+
     this.objects.push(this.player)
     this.objects.push(this.countdownLabel)
     this.objects.push(this.upButton)
     this.objects.push(this.downButton)
-    this.objects.push(this.heart1)
-    this.objects.push(this.heart2)
-    this.objects.push(this.heart3)
 
-    for (let i = 0; i < 10; i++) {
-        console.log(this.steps[i].x)
-        let enemy = new Sprite(this.steps[i].x, -100, 0.25, false, this.enemyCanvas)
-        this.enemies.push(enemy)
-        this.objects.push(enemy)
+    for (let i = 1; i < 9; i++) {
+        for (let j = 0; j < 2; j++) {
+            let enemy = new Sprite(this.steps[i].x, random.nextDouble(-100, -1500), 0.25, false, this.enemyCanvas)
+            this.initEnemy(enemy)
+            this.enemies.push(enemy)
+            this.objects.push(enemy)
+        }
     }
 }
 
@@ -304,14 +335,36 @@ game.end = function () {
     this.objects.push(this.tryAgainButton)
     this.objects.push(this.homeButton)
     this.objects.push(this.scoreBackground)
-    this.remove(this.upButton)
-    this.remove(this.downButton)
-}
+    this.remove(this.objects, this.upButton)
+    this.remove(this.objects, this.downButton)
 
-game.remove = function (o) {
-    let index = this.objects.findIndex(item => item == o);
-    if (index !== -1) {
-        this.objects.splice(index, 1);
+    for (let enemy of this.enemies) {
+        this.remove(this.objects, enemy)
     }
 }
 
+game.remove = function (array, o) {
+    let index = array.findIndex(item => item == o);
+    if (index !== -1) {
+        array.splice(index, 1);
+    }
+}
+
+game.initEnemy = function (enemy) {
+    enemy.velocity = random.nextDouble(0.2, 0.4)
+    enemy.isActive = true
+}
+
+game.goDown = function () {
+    if (this.playerStep - 1 >= 0) {
+        sound.playAudio(this.tapAudio)
+        this.playerStep--
+    }
+}
+
+game.goUp = function () {
+    if (this.playerStep + 1 <= this.stepsCount) {
+        sound.playAudio(this.tapAudio)
+        this.playerStep++
+    }
+}
