@@ -12,13 +12,12 @@ const game = {
     inGame: false,
     floorLabels: [],
     gameOverLabel: new Label(500, 560, 0, false, 'GAME OVER', 'white', 'bold', 60, 'Arial'),
-    winLabel: new Label(500, 560, 0, false, 'YOU WIN', 'white', 'bold', 60, 'Arial'),
+    winLabel: new Label(500, 560, 0, false, 'YOU WIN!', 'white', 'bold', 60, 'Arial'),
     homeButton: new Label(500, 850, 0, true, 'HOME', 'white', 'normal', 60, 'Arial'),
     tryAgainButton: new Label(500, 950, 0, true, 'TRY AGAIN', 'white', 'normal', 60, 'Arial'),
     playButton: new Label(500, 1300, 0, true, 'PLAY', 'white', 'normal', 60, 'Arial'),
     countdownLabel: new Label(500, 800, 0, false, '', 'white', 'normal', 130, 'Arial'),
     scoreBackground: new Sprite(500, 800, 0.4, false, null),
-    introBackground: new Sprite(500, 800, 0.4, false, null),
     directionSteps: [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109],
     showingCountdown: false,
     showingScore: false,
@@ -29,8 +28,10 @@ const game = {
     debug: false,
     stepOnCanvas: null,
     introTexts: [],
-    upButton: new Sprite(930, 1410, 0.5, true, null),
-    downButton: new Sprite(930, 1530, 0.5, true, null),
+    upButton: new Sprite(920, 1360, 0.5, true, null),
+    downButton: new Sprite(920, 1520, 0.5, true, null),
+    upArrow:new Label(920, 1360, 0, false, '↑', 'black', 'bold', 72, 'Arial'),
+    downArrow:new Label(920, 1520, 0, false, '↓', 'black', 'bold', 72, 'Arial'),
     lives: [],
     totalLives: 4,
     enemies: [],
@@ -49,12 +50,11 @@ game.init = async function (canvas, ctx) {
     this.tapAudio = await sound.loadAudio('./snd/tap.opus')
     this.hitAudio = await sound.loadAudio('./snd/hit.opus')
 
-    this.upButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/up.png'))
-    this.downButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/down.png'))
+    this.upButton.canvas = graphics.transform(140, 140, 0, await graphics.loadBitmap('./img/up.png'))
+    this.downButton.canvas = graphics.transform(140, 140, 0, await graphics.loadBitmap('./img/down.png'))
     this.player.canvas = graphics.transform(12 * 3, 32 * 3, 0, await graphics.loadBitmap('./img/front.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
-    this.introBackground.canvas = graphics.transform(800, 1200, 0, await graphics.loadBitmap('./img/step-on.png'))
     this.liveCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/live.png'))
     this.enemyCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/enemy.png'))
 
@@ -69,14 +69,14 @@ game.init = async function (canvas, ctx) {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(840, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'Arial'))
+            this.floorLabels.push(new Label(40, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'Arial'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(840, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'Arial'))
+    this.floorLabels.push(new Label(40, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'Arial'))
     this.objects.push(this.playButton)
 
     const texts = [
@@ -108,8 +108,6 @@ game.init = async function (canvas, ctx) {
         this.objects.push(line)
         textY += 48
     }
-
-    this.objects.push(this.introBackground)
 
     this.previous = performance.now()
 }
@@ -159,7 +157,6 @@ game.update = function (dt) {
 
 game.onKeyDown = function (key) {
     if (this.inGame) {
-
         if (key == 'arrowdown' && !this.downPressed) {
             this.goDown()
             this.downPressed = true
@@ -178,26 +175,30 @@ game.onKeyDown = function (key) {
 }
 
 game.onKeyUp = function (key) {
-    if (key == 'arrowdown') {
-        this.downPressed = false
-    } else if (key == 'arrowup') {
-        this.upPressed = false
+    if (this.inGame) {
+        if (key == 'arrowdown') {
+            this.downPressed = false
+        } else if (key == 'arrowup') {
+            this.upPressed = false
+        }
     }
 }
 
 game.onPointerDown = function (event) {
-    const hit = graphics.hit(this.objects, event, this.ctx)
+    if (this.inGame) {
+        const hit = graphics.hit(this.objects, event, this.ctx)
 
-    if (hit == this.downButton) {
-        this.goDown()
-    } else if (hit == this.upButton) {
-        this.goUp()
-    }
+        if (hit == this.downButton) {
+            this.goDown()
+        } else if (hit == this.upButton) {
+            this.goUp()
+        }
 
-    this.setPlayerPosition()
+        this.setPlayerPosition()
 
-    if (this.playerStep == 1) {
-        this.end()
+        if (this.playerStep == 1) {
+            this.end()
+        }
     }
 }
 
@@ -216,7 +217,7 @@ game.onPointerUp = function (event) {
 }
 
 game.clear = function () {
-    this.ctx.fillStyle = 'black'
+    this.ctx.fillStyle = '#383428'
     this.ctx.fillRect(0, 0, this.size.width, this.size.height)
 }
 
@@ -267,6 +268,9 @@ game.start = function () {
     this.objects.push(this.countdownLabel)
     this.objects.push(this.upButton)
     this.objects.push(this.downButton)
+    this.objects.push(this.upArrow)
+    this.objects.push(this.downArrow)
+
 
     for (let i = 1; i < 9; i++) {
         for (let j = 0; j < 2; j++) {
@@ -281,7 +285,6 @@ game.start = function () {
 game.home = function () {
     this.objects = []
     this.objects.push(this.playButton)
-    this.objects.push(this.introBackground)
 
     for (let text of this.introTexts) {
         this.objects.push(text)
@@ -297,6 +300,8 @@ game.end = function () {
     this.objects.push(this.scoreBackground)
     this.remove(this.objects, this.upButton)
     this.remove(this.objects, this.downButton)
+    this.remove(this.objects, this.downArrow)
+    this.remove(this.objects, this.upArrow)
 
     for (let enemy of this.enemies) {
         this.remove(this.objects, enemy)
