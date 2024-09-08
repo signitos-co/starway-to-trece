@@ -11,10 +11,10 @@ const game = {
     countdownTime: 0,
     inGame: false,
     floorLabels: [],
-    gameOverLabel: new Label(500, 560, 0, false, 'GAME OVER', 'white', 'bold', 60, 'Arial'),
-    winLabel: new Label(500, 560, 0, false, 'YOU WIN!', 'white', 'bold', 60, 'Arial'),
-    homeButton: new Label(500, 850, 0, true, 'HOME', 'white', 'normal', 60, 'Arial'),
-    tryAgainButton: new Label(500, 950, 0, true, 'TRY AGAIN', 'white', 'normal', 60, 'Arial'),
+    gameOverLabel: new Label(500, 560, 0, false, 'GAME OVER', 'black', 'bold', 60, 'Arial'),
+    winLabel: new Label(500, 560, 0, false, 'YOU WIN!', 'black', 'bold', 60, 'Arial'),
+    homeButton: new Label(500, 850, 0, true, 'HOME', 'black', 'normal', 60, 'Arial'),
+    tryAgainButton: new Label(500, 950, 0, true, 'TRY AGAIN', 'black', 'normal', 60, 'Arial'),
     playButton: new Label(500, 1300, 0, true, 'PLAY', 'white', 'normal', 60, 'Arial'),
     countdownLabel: new Label(500, 800, 0, false, '', 'white', 'normal', 130, 'Arial'),
     scoreBackground: new Sprite(500, 800, 0.4, false, null),
@@ -54,7 +54,7 @@ game.init = async function (canvas, ctx) {
     this.downButton.canvas = graphics.transform(140, 140, 0, await graphics.loadBitmap('./img/down.png'))
     this.player.canvas = graphics.transform(12 * 3, 32 * 3, 0, await graphics.loadBitmap('./img/front.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
-    this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
+    this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/up.png'))
     this.liveCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/live.png'))
     this.enemyCanvas = graphics.transform(32, 32, 0, await graphics.loadBitmap('./img/enemy.png'))
 
