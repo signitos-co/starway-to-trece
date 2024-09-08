@@ -82,14 +82,15 @@ game.init = async function (canvas, ctx) {
     const texts = [
         'Strange things happen',
         'on 13th floor',
-        'and now the elevator is broken ...',
+        'and now the elevator is broken.',
         '',
         'Run!',
         '',
-        'Get to the ground floor',
-        'as fast as you can.',
+        'But be careful with the ...',
         '',
-        'But be careful with the ...'
+        'Use the on-screen buttons',
+        'or keyboard arrow up and down',
+        'to get to the ground floor.'
     ]
 
     const marginX = 130
