@@ -11,12 +11,12 @@ const game = {
     countdownTime: 0,
     inGame: false,
     floorLabels: [],
-    gameOverLabel: new Label(500, 560, 0, false, 'GAME OVER', 'white', 'bold', 60, 'sans-serif'),
-    winLabel: new Label(500, 560, 0, false, 'YOU WIN', 'white', 'bold', 60, 'sans-serif'),
-    homeButton: new Label(500, 850, 0, true, 'HOME', 'white', 'normal', 60, 'sans-serif'),
-    tryAgainButton: new Label(500, 950, 0, true, 'TRY AGAIN', 'white', 'normal', 60, 'sans-serif'),
-    playButton: new Label(500, 1300, 0, true, 'PLAY', 'white', 'normal', 60, 'sans-serif'),
-    countdownLabel: new Label(500, 800, 0, false, '', 'white', 'normal', 130, 'sans-serif'),
+    gameOverLabel: new Label(500, 560, 0, false, 'GAME OVER', 'white', 'bold', 60, 'Arial'),
+    winLabel: new Label(500, 560, 0, false, 'YOU WIN', 'white', 'bold', 60, 'Arial'),
+    homeButton: new Label(500, 850, 0, true, 'HOME', 'white', 'normal', 60, 'Arial'),
+    tryAgainButton: new Label(500, 950, 0, true, 'TRY AGAIN', 'white', 'normal', 60, 'Arial'),
+    playButton: new Label(500, 1300, 0, true, 'PLAY', 'white', 'normal', 60, 'Arial'),
+    countdownLabel: new Label(500, 800, 0, false, '', 'white', 'normal', 130, 'Arial'),
     scoreBackground: new Sprite(500, 800, 0.4, false, null),
     introBackground: new Sprite(500, 800, 0.4, false, null),
     directionSteps: [10, 19, 28, 37, 46, 55, 64, 73, 82, 91, 100, 109],
@@ -26,7 +26,7 @@ const game = {
     audiosLoaded: false,
     tapAudio: null,
     hitAudio: null,
-    debug: true,
+    debug: false,
     stepOnCanvas: null,
     introTexts: [],
     upButton: new Sprite(930, 1410, 0.5, true, null),
@@ -49,8 +49,8 @@ game.init = async function (canvas, ctx) {
     this.tapAudio = await sound.loadAudio('./snd/tap.opus')
     this.hitAudio = await sound.loadAudio('./snd/hit.opus')
 
-    this.upButton.canvas = graphics.transform(80, 80, 0, await graphics.loadBitmap('./img/up.png'))
-    this.downButton.canvas = graphics.transform(80, 80, 0, await graphics.loadBitmap('./img/down.png'))
+    this.upButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/up.png'))
+    this.downButton.canvas = graphics.transform(100, 100, 0, await graphics.loadBitmap('./img/down.png'))
     this.player.canvas = graphics.transform(12 * 3, 32 * 3, 0, await graphics.loadBitmap('./img/front.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/step-on.png'))
@@ -69,14 +69,14 @@ game.init = async function (canvas, ctx) {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(840, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'sans-serif'))
+            this.floorLabels.push(new Label(840, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'Arial'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(840, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'sans-serif'))
+    this.floorLabels.push(new Label(840, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'Arial'))
     this.objects.push(this.playButton)
 
     const texts = [
@@ -95,12 +95,12 @@ game.init = async function (canvas, ctx) {
     const marginX = 130
     let textY = 400
 
-    let line = new Label(500, 250, 0, false, 'ESCAPE FROM TRECE', 'white', 'bold', 60, 'sans-serif')
+    let line = new Label(500, 250, 0, false, 'ESCAPE FROM TRECE', 'white', 'bold', 60, 'Arial')
     this.objects.push(line)
     this.introTexts.push(line)
 
     for (let i = 0; i < texts.length; i++) {
-        line = new Label(0, 0, 0, false, texts[i], 'white', 'italic', 48, 'sans-serif')
+        line = new Label(0, 0, 0, false, texts[i], 'white', 'italic', 48, 'Arial')
         graphics.alignLeft(line, marginX, this.ctx)
         line.y = textY
         this.introTexts.push(line)
@@ -254,7 +254,7 @@ game.start = function () {
         this.objects.push(floor)
     }
 
-    let y = 100
+    let y = 130
     for (let i = 0; i < this.totalLives; i++) {
         let live = new Sprite(920, y, 0.5, true, this.liveCanvas)
         this.lives.push(live)
