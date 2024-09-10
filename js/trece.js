@@ -28,10 +28,10 @@ const game = {
     debug: false,
     stepOnCanvas: null,
     introTexts: [],
-    upButton: new Sprite(920, 1360, 0.5, true, null),
-    downButton: new Sprite(920, 1520, 0.5, true, null),
-    upArrow: new Label(920, 1360, 0, false, '↑', 'black', 'bold', 72, 'Arial'),
-    downArrow: new Label(920, 1520, 0, false, '↓', 'black', 'bold', 72, 'Arial'),
+    upButton: new Sprite(900, 1280, 0.5, true, null),
+    downButton: new Sprite(900, 1500, 0.5, true, null),
+    upArrow: new Label(900, 1280, 0, false, '↑', 'black', 'bold', 72, 'Arial'),
+    downArrow: new Label(900, 1500, 0, false, '↓', 'black', 'bold', 72, 'Arial'),
     lives: [],
     totalLives: 4,
     enemies: [],
@@ -50,8 +50,8 @@ game.init = async function (canvas, ctx) {
     this.tapAudio = await sound.loadAudio('./snd/tap.opus')
     this.hitAudio = await sound.loadAudio('./snd/hit.opus')
 
-    this.upButton.canvas = graphics.transform(140, 140, 0, await graphics.loadBitmap('./img/up.png'))
-    this.downButton.canvas = graphics.transform(140, 140, 0, await graphics.loadBitmap('./img/down.png'))
+    this.upButton.canvas = graphics.transform(180, 180, 0, await graphics.loadBitmap('./img/up.png'))
+    this.downButton.canvas = graphics.transform(180, 180, 0, await graphics.loadBitmap('./img/down.png'))
     this.player.canvas = graphics.transform(12 * 3, 32 * 3, 0, await graphics.loadBitmap('./img/front.png'))
     this.stepOnCanvas = graphics.transform(this.stepSize.width, this.stepSize.height, 0, await graphics.loadBitmap('./img/step-on.png'))
     this.scoreBackground.canvas = graphics.transform(600, 600, 0, await graphics.loadBitmap('./img/up.png'))
