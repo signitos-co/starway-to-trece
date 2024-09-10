@@ -30,8 +30,8 @@ const game = {
     introTexts: [],
     upButton: new Sprite(920, 1360, 0.5, true, null),
     downButton: new Sprite(920, 1520, 0.5, true, null),
-    upArrow:new Label(920, 1360, 0, false, '↑', 'black', 'bold', 72, 'Arial'),
-    downArrow:new Label(920, 1520, 0, false, '↓', 'black', 'bold', 72, 'Arial'),
+    upArrow: new Label(920, 1360, 0, false, '↑', 'black', 'bold', 72, 'Arial'),
+    downArrow: new Label(920, 1520, 0, false, '↓', 'black', 'bold', 72, 'Arial'),
     lives: [],
     totalLives: 4,
     enemies: [],
@@ -185,35 +185,33 @@ game.onKeyUp = function (key) {
 }
 
 game.onPointerDown = function (event) {
-    if (this.inGame) {
-        const hit = graphics.hit(this.objects, event, this.ctx)
-
-        if (hit == this.downButton) {
-            this.goDown()
-        } else if (hit == this.upButton) {
-            this.goUp()
-        }
-
-        this.setPlayerPosition()
-
-        if (this.playerStep == 1) {
-            this.end()
-        }
-    }
-}
-
-game.onPointerUp = function (event) {
     const hit = graphics.hit(this.objects, event, this.ctx)
 
-    if (hit != null) {
+    if (hit) {
         if (hit == this.playButton) {
             this.start()
         } else if (hit == this.homeButton) {
             this.home()
         } else if (hit == this.tryAgainButton) {
             this.start()
+        } else if (this.inGame) {
+            if (hit == this.downButton) {
+                this.goDown()
+            } else if (hit == this.upButton) {
+                this.goUp()
+            }
+
+            this.setPlayerPosition()
+
+            if (this.playerStep == 1) {
+                this.end()
+            }
         }
     }
+}
+
+game.onPointerUp = function (event) {
+
 }
 
 game.clear = function () {
