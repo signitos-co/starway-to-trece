@@ -69,14 +69,14 @@ game.init = async function (canvas, ctx) {
         if (this.isDirectionStep(i)) {
             sign = sign * (-1)
 
-            this.floorLabels.push(new Label(40, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'Arial'))
+            this.floorLabels.push(new Label(20, y - 52, 2, false, String(this.directionSteps.indexOf(i) + 2).padStart(2, '0'), 'white', 'normal', 32, 'Arial'))
         }
 
         x += this.dx * sign
         y -= this.dy
     }
 
-    this.floorLabels.push(new Label(40, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'Arial'))
+    this.floorLabels.push(new Label(20, this.steps[9].y + 52, 2, false, '01', 'white', 'normal', 32, 'Arial'))
     this.objects.push(this.playButton)
 
     const texts = [
